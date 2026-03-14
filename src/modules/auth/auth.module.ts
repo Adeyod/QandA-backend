@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MailModule } from 'src/mail/mail.module';
+import { MailModule } from '../../mail/mail.module';
 import { RefreshTokensModule } from '../refresh-tokens/refresh-tokens.module';
 import { TokensModule } from '../tokens/tokens.module';
 import { UsersModule } from '../users/users.module';
