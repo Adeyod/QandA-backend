@@ -110,7 +110,6 @@ export class AuthController {
   })
   async loginUser(@Body() loginDto: LoginDto) {
     const res = await this.authService.loginUser(loginDto);
-    console.log('controller res:', res);
     return res;
   }
 
