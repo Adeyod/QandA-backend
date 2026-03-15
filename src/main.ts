@@ -1,6 +1,7 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+// import 'module-alias/register';
 import { AppModule } from './app.module';
 import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
 import { GlobalResponseInterceptor } from './common/interceptor/global-response.interceptor';

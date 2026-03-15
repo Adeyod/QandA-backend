@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { generateRefCode } from 'src/common/utils/helper';
+import { generateRefCode } from '../../../common/utils/helper';
 import { User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
