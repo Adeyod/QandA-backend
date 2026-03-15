@@ -9,8 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { Types } from 'mongoose';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { RefreshTokensService } from '../../../modules/refresh-tokens/refresh-tokens.service';
-import { UsersService } from '../../../modules/users/users.service';
+import { RefreshTokensService } from 'src/modules/refresh-tokens/refresh-tokens.service';
+import { UsersService } from 'src/modules/users/users.service';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(

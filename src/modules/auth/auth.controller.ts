@@ -16,11 +16,11 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
-import { SuccessMessage } from '../../common/decorators/success-message.decorator';
-import { ApiResponseDto } from '../../common/dto/api-response.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import type { JwtUser } from '../../common/types/jwt-user.type';
+import { GetCurrentUser } from 'src/common/decorators/get-current-user.decorator';
+import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
+import { ApiResponseDto } from 'src/common/dto/api-response.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import type { JwtUser } from 'src/common/types/jwt-user.type';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';

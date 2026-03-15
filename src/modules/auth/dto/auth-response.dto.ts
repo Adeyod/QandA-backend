@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Types } from 'mongoose';
-import { Role } from '../../../modules/users/schemas/user.schema';
+import { Role } from 'src/modules/users/schemas/user.schema';
 
 export class AuthResponseDto {
   @ApiProperty({

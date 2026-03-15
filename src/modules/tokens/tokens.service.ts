@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { generateCode } from '../../common/utils/code';
+import { generateCode } from 'src/common/utils/code';
 import { TokenCreationDto } from './dto/token-creation.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { TokensRepository } from './repositories/tokens.repository';
