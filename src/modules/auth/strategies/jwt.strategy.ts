@@ -27,6 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     console.log('JWT STRATEGY validate called!');
     console.log('Payload:', payload);
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+    console.log('Payload token:', token);
     const blacklisted = await this.blacklistedToken.findOne({ token });
 
     if (blacklisted) {

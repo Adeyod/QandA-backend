@@ -6,6 +6,7 @@ import { MailModule } from 'src/mail/mail.module';
 import { RefreshTokensModule } from '../refresh-tokens/refresh-tokens.module';
 import { TokensModule } from '../tokens/tokens.module';
 import { UsersModule } from '../users/users.module';
+import { WalletsModule } from '../wallets/wallets.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import {
@@ -33,6 +34,7 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
     UsersModule,
     MailModule,
     RefreshTokensModule,
+    WalletsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RefreshTokenStrategy],

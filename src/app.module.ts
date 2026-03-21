@@ -11,6 +11,12 @@ import { AuthModule } from './modules/auth/auth.module';
 import { RefreshTokensModule } from './modules/refresh-tokens/refresh-tokens.module';
 import { TokensModule } from './modules/tokens/tokens.module';
 import { UsersModule } from './modules/users/users.module';
+import { SubjectsModule } from './modules/subjects/subjects.module';
+import { QuestionsModule } from './modules/questions/questions.module';
+import { QuestionsInjectionModule } from './modules/questions-injection/questions-injection.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { WalletsModule } from './modules/wallets/wallets.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -69,6 +75,12 @@ import { UsersModule } from './modules/users/users.module';
     TokensModule,
     UsersModule,
     RefreshTokensModule,
+    SubjectsModule,
+    QuestionsModule,
+    QuestionsInjectionModule,
+    PaymentsModule,
+    WalletsModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

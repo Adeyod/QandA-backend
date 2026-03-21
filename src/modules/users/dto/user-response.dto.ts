@@ -5,7 +5,7 @@ import { Role } from '../schemas/user.schema';
 export class UserResponseDto {
   @ApiProperty({
     description: 'user ID',
-    example: 'user-123',
+    example: 'ei3392ue8394jf9550dj49fj',
   })
   _id: Types.ObjectId;
 

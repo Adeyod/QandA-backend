@@ -17,6 +17,8 @@ import { RefreshTokensService } from '../refresh-tokens/refresh-tokens.service';
 import { TokensRepository } from '../tokens/repositories/tokens.repository';
 import { TokenPurpose } from '../tokens/schemas/token.schema';
 import { UsersRepository } from '../users/repositories/users.repository';
+import { WalletResponseDto } from '../wallets/dto/wallet-response.dto';
+import { WalletsRepository } from '../wallets/repositories/wallets.repository';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -32,6 +34,7 @@ export class AuthService {
     @InjectModel('BlacklistedToken')
     private blacklistedToken: Model<BlacklistedToken>,
     private usersRepository: UsersRepository,
+    private walletsRepository: WalletsRepository,
     private jwtService: JwtService,
     private tokensRepository: TokensRepository,
     private mailService: MailService,
@@ -74,6 +77,16 @@ export class AuthService {
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     };
     const userToken = await this.tokensRepository.create(input);
+
+    const findWallet = await this.walletsRepository.findWalletByUserId(
+      newUser._id.toString(),
+    );
+
+    if (!findWallet) {
+      const newWallet = await this.walletsRepository.createWallet(
+        newUser._id.toString(),
+      );
+    }
 
     await this.mailService.sendVerificationEmail(
       newUser.email,
@@ -193,12 +206,31 @@ export class AuthService {
         user.role,
         user._id,
       );
-      const accessToken = await this.generateAccessTokens(user.email, user._id);
+      const accessToken = await this.generateAccessTokens(
+        user.email,
+        user._id,
+        user.role,
+      );
+
+      let userWallet: WalletResponseDto | null;
+
+      userWallet = await this.walletsRepository.findWalletByUserId(
+        user._id.toString(),
+      );
+
+      if (!userWallet) {
+        userWallet = await this.walletsRepository.createWallet(
+          user._id.toString(),
+        );
+      }
 
       return {
         refreshToken: refreshToken.refreshToken,
         accessToken,
-        user,
+        user: {
+          userWallet,
+          ...user,
+        },
       };
     }
   }
@@ -296,8 +328,8 @@ export class AuthService {
     email: string;
     role: string;
   }) {
-    const { email, _id } = user;
-    const accessToken = this.generateAccessTokens(email, _id);
+    const { email, _id, role } = user;
+    const accessToken = this.generateAccessTokens(email, _id, role);
 
     return accessToken;
   }
@@ -390,9 +422,13 @@ export class AuthService {
     return hash;
   }
 
-  private async generateAccessTokens(email: string, id: Types.ObjectId) {
+  private async generateAccessTokens(
+    email: string,
+    id: Types.ObjectId,
+    role: string,
+  ) {
     console.log('I want to generate access token');
-    const payload = { sub: id, email };
+    const payload = { sub: id, email, role };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '1d',

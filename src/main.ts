@@ -2,6 +2,11 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 // import 'module-alias/register';
+import { createBullBoard } from '@bull-board/api';
+import { BullAdapter } from '@bull-board/api/bullAdapter';
+import { ExpressAdapter } from '@bull-board/express';
+import { getQueueToken } from '@nestjs/bull';
+import { Queue } from 'bull';
 import { AppModule } from './app.module';
 import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
 import { GlobalResponseInterceptor } from './common/interceptor/global-response.interceptor';
@@ -10,8 +15,26 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const port = process.env.PORT ?? 3000;
-
   app.setGlobalPrefix('/api/v1');
+
+  const questionsQueue = app.get<Queue>(getQueueToken('questions-sync'));
+  const mailQueue = app.get<Queue>(getQueueToken('mail'));
+
+  // Bull Board Express adapter
+  const serverAdapter = new ExpressAdapter();
+  serverAdapter.setBasePath('/admin/queues');
+
+  // const repo = app.get(QuestionsRepository);
+
+  // await repo.flattenOptions();
+
+  // Create Bull Board
+  const { addQueue, removeQueue, replaceQueues } = createBullBoard({
+    queues: [new BullAdapter(mailQueue), new BullAdapter(questionsQueue)],
+    serverAdapter,
+  });
+
+  app.use('/admin/queues', serverAdapter.getRouter());
 
   // Configure pipes
   app.useGlobalPipes(
@@ -42,6 +65,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('auth', 'Authentication related endpoints.')
     .addTag('users', 'User management endpoints')
+    .addTag('subjects', 'Subject management endpoints')
     .addBearerAuth(
       {
         type: 'http',
@@ -86,6 +110,9 @@ async function bootstrap() {
 
   await app.listen(port, () => {
     console.log(`Server listening on port: ${port}`);
+    console.log(
+      `Bull Board available at http://localhost:${port}/admin/queues`,
+    );
   });
 }
 bootstrap().catch((error) => {

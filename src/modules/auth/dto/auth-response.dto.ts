@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { Role } from 'src/modules/users/schemas/user.schema';
+import { WalletResponseDto } from 'src/modules/wallets/dto/wallet-response.dto';
 
 export class AuthResponseDto {
   @ApiProperty({
@@ -27,6 +28,11 @@ export class AuthResponseDto {
       lastName: 'Doe',
       phoneNumber: '09049384726',
       isVerified: true,
+      userWallet: {
+        _id: '2039difur849e0403e940e9',
+        userId: '2039difur849e0403e940e9',
+        balance: 0,
+      },
     },
   })
   user: {
@@ -37,6 +43,7 @@ export class AuthResponseDto {
     lastName: string;
     phoneNumber: string;
     isVerified: boolean;
+    userWallet: WalletResponseDto;
   };
 
   @ApiProperty({

@@ -8,6 +8,12 @@ export enum Role {
   USER = 'USER',
 }
 
+export enum Plan {
+  SECONDARY = 'SECONDARY',
+  TERTIARY = 'TERTIARY',
+  POSTGRAD = 'POSTGRAD',
+}
+
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
@@ -36,6 +42,31 @@ export class User {
 
   @Prop({ default: false })
   isVerified: boolean;
+
+  @Prop({ default: false })
+  hasPaid: boolean;
+
+  @Prop({
+    type: [String],
+    enum: Plan,
+    default: [],
+  })
+  plans: Plan[];
+
+  @Prop({
+    type: {
+      deviceId: { type: String },
+      deviceName: { type: String },
+      lastLogin: { type: Date },
+    },
+    _id: false,
+    default: null,
+  })
+  device: {
+    deviceId: string; // will be generated from frontend if the user does not have one
+    deviceName: string; // comes from frontend
+    lastLogin: Date;
+  };
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

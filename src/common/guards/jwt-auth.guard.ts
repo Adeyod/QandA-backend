@@ -13,6 +13,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest();
+
+    console.log('AUTH HEADER:', req.headers.authorization);
     console.log('I am running JWT AUTH GUARD');
     console.log('JwtAuthGuard context:', context);
 
@@ -23,8 +26,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any, info: any) {
+    console.log('JwtAuth info:', info);
+    console.log('JwtAuth user:', user);
     if (err || !user) {
-      throw err || new UnauthorizedException();
+      console.log('JwtAuth err:', err);
+      throw (
+        err ||
+        new UnauthorizedException({
+          message: 'Unauthorized',
+          status: 401,
+          success: false,
+        })
+      );
     }
 
     return user;
