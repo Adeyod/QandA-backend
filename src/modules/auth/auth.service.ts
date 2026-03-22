@@ -17,6 +17,7 @@ import { RefreshTokensService } from '../refresh-tokens/refresh-tokens.service';
 import { TokensRepository } from '../tokens/repositories/tokens.repository';
 import { TokenPurpose } from '../tokens/schemas/token.schema';
 import { UsersRepository } from '../users/repositories/users.repository';
+import { Plan } from '../users/schemas/user.schema';
 import { WalletResponseDto } from '../wallets/dto/wallet-response.dto';
 import { WalletsRepository } from '../wallets/repositories/wallets.repository';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -45,7 +46,6 @@ export class AuthService {
       registerUserDto;
 
     const userExist = await this.usersRepository.findByEmail(email);
-    console.log('userExist:', userExist);
 
     if (userExist) {
       throw new ConflictException({
@@ -56,7 +56,6 @@ export class AuthService {
     }
 
     const hashed = await this.passwordHashing(password);
-    console.log('hashed:', hashed);
 
     const payload = {
       firstName,
@@ -67,7 +66,6 @@ export class AuthService {
     };
 
     const newUser = await this.usersRepository.create(payload);
-    console.log('newUser:', newUser);
 
     const token = generateCode(6);
     const input = {
@@ -210,6 +208,7 @@ export class AuthService {
         user.email,
         user._id,
         user.role,
+        user.plans,
       );
 
       let userWallet: WalletResponseDto | null;
@@ -224,12 +223,14 @@ export class AuthService {
         );
       }
 
+      const { password, ...others } = user.toObject();
+
       return {
         refreshToken: refreshToken.refreshToken,
         accessToken,
         user: {
           userWallet,
-          ...user,
+          ...others,
         },
       };
     }
@@ -327,9 +328,10 @@ export class AuthService {
     _id: Types.ObjectId;
     email: string;
     role: string;
+    plans: Plan[];
   }) {
-    const { email, _id, role } = user;
-    const accessToken = this.generateAccessTokens(email, _id, role);
+    const { email, _id, role, plans } = user;
+    const accessToken = this.generateAccessTokens(email, _id, role, plans);
 
     return accessToken;
   }
@@ -426,9 +428,10 @@ export class AuthService {
     email: string,
     id: Types.ObjectId,
     role: string,
+    plans: Plan[],
   ) {
     console.log('I want to generate access token');
-    const payload = { sub: id, email, role };
+    const payload = { sub: id, email, role, plans };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '1d',

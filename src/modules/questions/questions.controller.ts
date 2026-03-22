@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -11,8 +12,10 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 import { ApiResponseDto } from 'src/common/dto/api-response.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { PlansGuard } from 'src/common/guards/plans.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from '../users/schemas/user.schema';
+import { GetQuestionsDto } from './dto/get-questions.dto';
 import { QuestionsService } from './questions.service';
 
 @Controller('questions')
@@ -133,5 +136,62 @@ export class QuestionsController {
   })
   async getQuestionsSummary() {
     return await this.questionsService.getQuestionsSummary();
+  }
+
+  @Get('free-questions-per-plan/:plan')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER, Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('Questions fetched successfully')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Fetching free past questions based on selected plan',
+    description:
+      'This is the endpoint for fetching past questions based on the plan that the user selected.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Questions fetched successfully',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Unable to fetch questions.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async getFreeQuestionsPerPlan(@Query() getQuestionsDto: GetQuestionsDto) {
+    return await this.questionsService.getFreeQuestionsPerPlan(getQuestionsDto);
+  }
+  @Get('paid-questions-per-plan')
+  @UseGuards(JwtAuthGuard, RolesGuard, PlansGuard)
+  @Roles(Role.USER, Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('Questions fetched successfully')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Fetching free past questions based on selected plan',
+    description:
+      'This is the endpoint for fetching past questions based on the plan that the user selected.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Questions fetched successfully',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Unable to fetch questions.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async getPaidQuestionsPerPlan(@Query() getQuestionsDto: GetQuestionsDto) {
+    const questions =
+      await this.questionsService.getPaidQuestionsPerPlan(getQuestionsDto);
+    return questions;
   }
 }

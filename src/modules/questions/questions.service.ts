@@ -1,10 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Types } from 'mongoose';
+import { SubjectsRepository } from '../subjects/repositories/subjects.repository';
+import { GetQuestionsDto } from './dto/get-questions.dto';
 import { QuestionsRepository } from './repositories/questions.repository';
 
 @Injectable()
 export class QuestionsService {
-  constructor(private questionsRepository: QuestionsRepository) {}
+  constructor(
+    private questionsRepository: QuestionsRepository,
+    private subjectsRepository: SubjectsRepository,
+  ) {}
 
   async findById(questionId: string) {
     const id = new Types.ObjectId(questionId);
@@ -34,5 +43,62 @@ export class QuestionsService {
       id,
       year,
     );
+  }
+
+  async getFreeQuestionsPerPlan(getQuestionsDto: GetQuestionsDto) {
+    const { plan, year, subject } = getQuestionsDto;
+
+    const freeYears = ['2000', '2001'];
+    if (!freeYears.includes(getQuestionsDto.year)) {
+      throw new ForbiddenException({
+        message: 'This is not allowed.',
+        status: 403,
+        success: false,
+      });
+    }
+
+    const getSubject = await this.subjectsRepository.findByName(
+      subject.trim().toLowerCase(),
+    );
+
+    if (!getSubject) {
+      throw new NotFoundException({
+        message: 'Subject not found',
+        success: false,
+        status: 404,
+      });
+    }
+
+    const input = {
+      plan,
+      year,
+      subject: getSubject._id.toString(),
+    };
+    return await this.questionsRepository.getFreeQuestions(input);
+  }
+
+  async getPaidQuestionsPerPlan(getQuestionsDto: GetQuestionsDto) {
+    const { plan, year, subject } = getQuestionsDto;
+    const getSubject = await this.subjectsRepository.findByName(
+      subject.trim().toLowerCase(),
+    );
+
+    if (!getSubject) {
+      throw new NotFoundException({
+        message: 'Subject not found',
+        success: false,
+        status: 404,
+      });
+    }
+
+    console.log('getSubject:', getSubject);
+    const input = {
+      plan,
+      year,
+      subject: getSubject._id.toString(),
+    };
+    const questions = await this.questionsRepository.getPaidQuestions(input);
+    console.log('service questions:', questions);
+    return questions;
   }
 }

@@ -26,6 +26,7 @@ export class AuthResponseDto {
       role: 'USER',
       firstName: 'John',
       lastName: 'Doe',
+      referralCode: 'AB-192JE2',
       phoneNumber: '09049384726',
       isVerified: true,
       userWallet: {
@@ -40,6 +41,7 @@ export class AuthResponseDto {
     email: string;
     role: Role;
     firstName: string;
+    referralCode: string;
     lastName: string;
     phoneNumber: string;
     isVerified: boolean;

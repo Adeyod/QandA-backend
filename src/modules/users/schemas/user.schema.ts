@@ -11,7 +11,7 @@ export enum Role {
 export enum Plan {
   SECONDARY = 'SECONDARY',
   TERTIARY = 'TERTIARY',
-  POSTGRAD = 'POSTGRAD',
+  OTHERS = 'OTHERS',
 }
 
 @Schema({ timestamps: true })

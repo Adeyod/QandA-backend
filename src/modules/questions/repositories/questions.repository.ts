@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { GetQuestionsDto } from '../dto/get-questions.dto';
 import { QueryQuestionsDto } from '../dto/query-question.dto';
 import { QuestionDocument } from '../schemas/question.schema';
 
@@ -267,6 +268,41 @@ export class QuestionsRepository {
     };
 
     return result;
+  }
+
+  async getFreeQuestions(
+    getQuestionsDto: GetQuestionsDto,
+  ): Promise<QuestionDocument[]> {
+    const { plan, subject, year } = getQuestionsDto;
+    const id = new Types.ObjectId(subject);
+
+    const questions = await this.questionModel
+      .find({
+        // plan,
+        examYear: year,
+        subject: id,
+      })
+      .lean();
+
+    return questions;
+  }
+  async getPaidQuestions(
+    getQuestionsDto: GetQuestionsDto,
+  ): Promise<QuestionDocument[]> {
+    const { plan, subject, year } = getQuestionsDto;
+    const id = new Types.ObjectId(subject);
+
+    const questions = await this.questionModel
+      .find({
+        // plan,
+        examYear: year,
+        subject: id,
+      })
+      .lean();
+
+    console.log('questions:', questions);
+
+    return questions;
   }
 
   async changeSubjectToMongooseObjectForQuestion(name: string, id: string) {

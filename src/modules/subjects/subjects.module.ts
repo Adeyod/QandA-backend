@@ -11,5 +11,6 @@ import { SubjectsService } from './subjects.service';
   ],
   controllers: [SubjectsController],
   providers: [SubjectsService, SubjectsRepository],
+  exports: [SubjectsRepository],
 })
 export class SubjectsModule {}

@@ -99,4 +99,10 @@ export class WalletsRepository {
     const debitTransaction =
       await this.transactionsRepository.createTransaction(payload);
   }
+
+  async getWalletBalance(walletId: string): Promise<number | null> {
+    const id = new Types.ObjectId(walletId);
+    const wallet = await this.walletModel.findById(id);
+    return wallet?.balance || null;
+  }
 }

@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from 'src/modules/users/schemas/user.schema';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -14,7 +19,7 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    console.log('RolesGuard requiredRoles:', requiredRoles);
+    // console.log('RolesGuard requiredRoles:', requiredRoles);
 
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
@@ -23,12 +28,28 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    console.log('RolesGuard user:', user);
+    // console.log('RolesGuard user:', user);
 
     if (!user || !user.role) {
-      return false;
+      throw new ForbiddenException({
+        message: 'User not authenticated',
+        success: false,
+        status: 403,
+      });
     }
 
-    return requiredRoles.includes(user.role);
+    const hasRole = requiredRoles.some((role) => user.role === role);
+
+    if (!hasRole) {
+      throw new ForbiddenException({
+        message: 'You are not authorized to view this resource.',
+        success: false,
+        status: 403,
+      });
+    }
+
+    // console.log('RolesGuard user:', user);
+    return true;
+    // return requiredRoles.includes(user.role);
   }
 }
