@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
 import { CreateSubjectDto } from './dto/create-subject.dto';
-import { QuerySubjectsDto } from './dto/query-subject.dto';
 import { SubjectsRepository } from './repositories/subjects.repository';
 
 @Injectable()
@@ -39,8 +39,8 @@ export class SubjectsService {
     return newSubject;
   }
 
-  async getAllSubjects(querySubjectsDto: QuerySubjectsDto) {
-    return this.subjectsRepository.findAll(querySubjectsDto);
+  async getAllSubjects(queryWithPaginationDto: QueryWithPaginationDto) {
+    return this.subjectsRepository.findAll(queryWithPaginationDto);
   }
 
   async getSubjectById(subjectId: string) {

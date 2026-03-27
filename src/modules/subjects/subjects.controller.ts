@@ -19,11 +19,11 @@ import {
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 import { ApiResponseDto } from 'src/common/dto/api-response.dto';
+import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role } from '../users/schemas/user.schema';
 import { CreateSubjectDto } from './dto/create-subject.dto';
-import { QuerySubjectsDto } from './dto/query-subject.dto';
 import { SubjectResponseDto } from './dto/subject-response.dto';
 import { SubjectsService } from './subjects.service';
 
@@ -91,8 +91,10 @@ export class SubjectsController {
       },
     },
   })
-  async getAllSubjects(@Query() querySubjectsDto: QuerySubjectsDto) {
-    return await this.subjectsService.getAllSubjects(querySubjectsDto);
+  async getAllSubjects(
+    @Query() queryWithPaginationDto: QueryWithPaginationDto,
+  ) {
+    return await this.subjectsService.getAllSubjects(queryWithPaginationDto);
   }
 
   @Get(':subjectId')

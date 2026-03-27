@@ -1,4 +1,4 @@
-import { NotAcceptableException } from '@nestjs/common';
+import { BadRequestException, NotAcceptableException } from '@nestjs/common';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { customAlphabet } from 'nanoid';
 
@@ -21,4 +21,22 @@ export const generateRefCode = (): string => {
 
   const code = `AT-${nanoid()}`;
   return code;
+};
+
+export const generatePaymentReference = (payload) => {
+  const { userId, plan } = payload;
+
+  console.log('payload:', payload);
+
+  if (!userId || !plan) {
+    throw new BadRequestException({
+      message: 'User ID and plan are required.',
+      success: false,
+      status: 400,
+    });
+  }
+
+  const ref = `PAYMENT_${plan}_${userId}_${Date.now()}`;
+
+  return ref;
 };

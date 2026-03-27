@@ -1,7 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { QuerySubjectsDto } from '../dto/query-subject.dto';
+import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
 import { SubjectResponseDto } from '../dto/subject-response.dto';
 import { SubjectDocument } from '../schemas/subject.schema';
 
@@ -23,12 +23,12 @@ export class SubjectsRepository {
     return await subject.save();
   }
 
-  async findAll(querySubjectsDto: QuerySubjectsDto): Promise<{
+  async findAll(queryWithPaginationDto: QueryWithPaginationDto): Promise<{
     subjectObj: SubjectResponseDto[];
     totalPages: number;
     totalCount: number;
   }> {
-    const { page, searchParams, limit } = querySubjectsDto;
+    const { page, searchParams, limit } = queryWithPaginationDto;
 
     let query = this.subjectModel.find();
     if (searchParams) {

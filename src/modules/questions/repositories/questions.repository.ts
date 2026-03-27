@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
 import { GetQuestionsDto } from '../dto/get-questions.dto';
-import { QueryQuestionsDto } from '../dto/query-question.dto';
 import { QuestionDocument } from '../schemas/question.schema';
 
 export class QuestionsRepository {
@@ -14,8 +14,8 @@ export class QuestionsRepository {
     return await this.questionModel.findById(id);
   }
 
-  async findAll(queryQuestionsDto: QueryQuestionsDto) {
-    const { page, limit, searchParams } = queryQuestionsDto;
+  async findAll(queryWithPaginationDto: QueryWithPaginationDto) {
+    const { page, limit, searchParams } = queryWithPaginationDto;
 
     let query = this.questionModel.find();
 

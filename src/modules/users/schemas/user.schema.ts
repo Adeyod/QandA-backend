@@ -14,6 +14,12 @@ export enum Plan {
   OTHERS = 'OTHERS',
 }
 
+export const PLAN_PRICES: Record<Plan, number> = {
+  [Plan.SECONDARY]: 2000,
+  [Plan.TERTIARY]: 3000,
+  [Plan.OTHERS]: 5000,
+};
+
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })

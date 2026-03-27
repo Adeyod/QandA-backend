@@ -325,13 +325,13 @@ export class AuthService {
     };
   }
   async requestAccessToken(user: {
-    _id: Types.ObjectId;
+    sub: Types.ObjectId;
     email: string;
     role: string;
     plans: Plan[];
   }) {
-    const { email, _id, role, plans } = user;
-    const accessToken = this.generateAccessTokens(email, _id, role, plans);
+    const { email, sub, role, plans } = user;
+    const accessToken = this.generateAccessTokens(email, sub, role, plans);
 
     return accessToken;
   }
@@ -392,7 +392,7 @@ export class AuthService {
     const deleteRefreshToken =
       await this.refreshTokensService.deleteRefreshToken(
         refreshToken,
-        user._id,
+        user.sub,
       );
 
     const decoded = this.jwtService.decode(accessToken);

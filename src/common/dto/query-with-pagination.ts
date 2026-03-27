@@ -2,15 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
-export class QueryQuestionsDto {
-  @ApiPropertyOptional({
-    description: 'Search by value',
-    example: 'Chemistry',
-  })
-  @IsString({ message: 'Search params must be a string' })
-  @IsOptional()
-  searchParams?: string;
-
+export class QueryWithPaginationDto {
   @ApiPropertyOptional({
     description: 'Page number for pagination',
     example: 1,
@@ -31,7 +23,15 @@ export class QueryQuestionsDto {
   })
   @Type(() => Number)
   @IsNumber()
-  @Min(10)
+  @Min(1)
   @IsOptional()
   limit: number = 10;
+
+  @ApiPropertyOptional({
+    description: 'Search value',
+    example: 'John',
+  })
+  @IsString({ message: 'Search params must be a string' })
+  @IsOptional()
+  searchParams?: string;
 }
