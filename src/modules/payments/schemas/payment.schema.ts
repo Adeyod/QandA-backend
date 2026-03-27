@@ -73,8 +73,4 @@ PaymentSchema.index({
   expiresAt: 1,
 });
 
-PaymentSchema.index({
-  reference: 1,
-});
-
 PaymentSchema.index({ providerReference: 1 });
