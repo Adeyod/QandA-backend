@@ -78,6 +78,11 @@ async function bootstrap() {
   app.useGlobalInterceptors(new GlobalResponseInterceptor(app.get(Reflector)));
   app.useGlobalFilters(new MongoExceptionFilter());
 
+  const serverUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'https://qanda-backend-1bj1.onrender.com'
+      : `http://localhost:${port}`;
+
   // Enable Swagger Docs
   const config = new DocumentBuilder()
     .setTitle('Q and A API Documentation')
@@ -108,7 +113,7 @@ async function bootstrap() {
       },
       'JWT-refresh',
     )
-    .addServer(`http://localhost:${port}`, 'Development Server')
+    .addServer(serverUrl)
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
