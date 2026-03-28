@@ -86,8 +86,6 @@ export class PaymentsService {
       plan,
     );
 
-    console.log('createIntent:', createIntent);
-
     if (!createIntent) {
       throw new BadRequestException({
         message: 'Unable to create payment document',
