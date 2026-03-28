@@ -48,11 +48,31 @@ async function bootstrap() {
     }),
   );
 
+  // app.enableCors({
+  //   origin: process.env.ALLOWED_ORIGINS?.split(',') ?? 'http://localhost:3000',
+  //   credential: true,
+  //   methods: ['GET', 'DELETE', 'PATCH', 'OPTIONS'],
+  //   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  // });
+
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS?.split(',') || []).map(
+    (origin) => origin.trim(),
+  );
+
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') ?? 'http://localhost:3000',
-    credential: true,
-    methods: ['GET', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+    credentials: true,
   });
 
   app.useGlobalInterceptors(new GlobalResponseInterceptor(app.get(Reflector)));
