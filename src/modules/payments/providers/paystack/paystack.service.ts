@@ -34,15 +34,14 @@ export class PaystackService implements IPaymentProvider {
   async initializePayment(payload: PaymentInitializationPayload) {
     const { amount, userId, email, reference } = payload;
 
-    const metadata = { amount, userId, email, reference };
+    const dataToSend = {
+      email: email,
+      amount,
+      metadata: payload,
+    };
     const response = await axios.post(
       `${this.baseUrl}/transaction/initialize`,
-      {
-        email: email,
-        amount: amount,
-        reference: reference,
-        metadata,
-      },
+      dataToSend,
       {
         headers: {
           Authorization: `Bearer ${this.secret}`,
@@ -53,7 +52,7 @@ export class PaystackService implements IPaymentProvider {
     return {
       provider: 'paystack',
       reference: payload.reference,
-      providerReference: response.data.data.access_code,
+      providerReference: response.data.data.reference,
       paymentUrl: response.data.data.authorization_url,
     };
   }
@@ -68,7 +67,7 @@ export class PaystackService implements IPaymentProvider {
       },
     );
 
-    return response.data;
+    return response.data.data;
   }
 
   async handleWebhook(req: Request): Promise<any> {
@@ -86,8 +85,10 @@ export class PaystackService implements IPaymentProvider {
     }
 
     const event = req.body;
-    console.log('webhook event.event:', event.event);
-    console.log('webhook event.event.metadata:', event.event.metadata);
+    // console.log('webhook event.event:', event);
+    // console.log('webhook event.metadata:', event.metadata);
+
+    if (event.event !== 'charge.success') return;
 
     if (event.event === 'charge.success') {
       // GET ACCOUNT USING ACCOUNT ID AND USER ID
@@ -116,60 +117,91 @@ export class PaystackService implements IPaymentProvider {
         user,
       );
 
-      if (payment?.status === PaymentStatus.PENDING) {
-        const paymentUpdateRes =
-          await this.paymentsRepository.updatePaymentStatusUsingPaymentId(
-            payment._id,
-            PaymentStatus.SUCCESSFUL,
-          );
+      if (!payment) {
+        throw new NotFoundException({
+          message: 'Payment document not found.',
+          status: 404,
+          success: false,
+        });
+      }
 
-        if (!paymentUpdateRes) {
-          throw new BadRequestException({
-            message: 'Unable to process payment webhook.',
-            success: false,
-            status: 400,
-          });
-        }
+      if (payment.verified) {
+        return { message: 'Payment already processed.' };
+      }
 
-        const userExist = await this.usersRepository.findById(user);
-        if (!userExist) {
-          throw new NotFoundException({
-            message: 'User not found.',
-            success: false,
-            status: 404,
-          });
-        }
+      const verifyResponse = await this.verifyPayment(reference);
 
-        if (userExist.referredBy) {
-          const referredBy = await this.usersRepository.findById(
-            userExist.referredBy,
-          );
+      const {
+        status: _status,
+        reference: _ref,
+        amount: _amt,
+        metadata: {
+          email: _email,
+          amount: _amount,
+          reference: _reference,
+          userId: _userId,
+        },
+      } = verifyResponse;
 
-          if (!referredBy) {
+      if (_status === 'success') {
+        payment.verified = true;
+        if (payment.status === PaymentStatus.PENDING) {
+          const paymentUpdateRes =
+            await this.paymentsRepository.updatePaymentStatusUsingPaymentId(
+              payment._id,
+              PaymentStatus.SUCCESSFUL,
+            );
+
+          if (!paymentUpdateRes) {
+            throw new BadRequestException({
+              message: 'Unable to process payment webhook.',
+              success: false,
+              status: 400,
+            });
+          }
+
+          const userExist = await this.usersRepository.findById(user);
+          if (!userExist) {
             throw new NotFoundException({
-              message: 'The person who referred this user is not found.',
+              message: 'User not found.',
               success: false,
               status: 404,
             });
           }
 
-          const wallet = await this.walletsRepository.findWalletByUserId(
-            referredBy._id.toString(),
-          );
-          if (!wallet) {
-            throw new NotFoundException({
-              message: 'User wallet not found.',
-              success: false,
-              status: 404,
-            });
+          if (userExist.referredBy) {
+            const referredBy = await this.usersRepository.findById(
+              userExist.referredBy,
+            );
+
+            if (!referredBy) {
+              throw new NotFoundException({
+                message: 'The person who referred this user is not found.',
+                success: false,
+                status: 404,
+              });
+            }
+
+            const wallet = await this.walletsRepository.findWalletByUserId(
+              referredBy._id.toString(),
+            );
+
+            if (!wallet) {
+              throw new NotFoundException({
+                message: 'User wallet not found.',
+                success: false,
+                status: 404,
+              });
+            }
+
+            const formattedAmt = amount / 100;
+            const walletId = wallet._id.toString();
+            const refAmount = 0.25 * formattedAmt;
+            const description = `This is the referral bonus on the payment made by ${`${userExist.firstName} ${userExist.lastName}`} for ${payment.plan} plan.`;
+
+            const input = { walletId, amount: refAmount, description };
+            const update = await this.walletsRepository.creditWallet(input);
           }
-
-          const walletId = wallet._id.toString();
-          const amount = 0.25 * amt;
-          const description = `This is the referral bonus on the payment made by ${`${userExist.firstName} ${userExist.lastName}`} for ${payment.plan} plan.`;
-
-          const input = { walletId, amount, description };
-          const update = await this.walletsRepository.creditWallet(input);
         }
       }
 

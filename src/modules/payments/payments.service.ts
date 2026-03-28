@@ -97,7 +97,6 @@ export class PaymentsService {
     }
 
     const handler = this.providerMap[provider];
-    console.log('handler:', handler);
 
     if (!handler) {
       throw new BadRequestException({

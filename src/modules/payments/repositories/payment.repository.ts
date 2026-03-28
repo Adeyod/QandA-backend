@@ -66,7 +66,7 @@ export class PaymentsRepository {
     userId: Types.ObjectId,
   ): Promise<PaymentResponseDto | null> {
     const payment = await this.paymentModel.findOne({
-      reference,
+      providerReference: reference,
       userId,
     });
 
@@ -77,8 +77,11 @@ export class PaymentsRepository {
     paymentId: Types.ObjectId,
     status: PaymentStatus,
   ): Promise<PaymentResponseDto | null> {
+    const paidAt = new Date(Date.now());
+    console.log('paidAt:', paidAt);
     const payment = await this.paymentModel.findByIdAndUpdate(paymentId, {
       status,
+      paidAt,
     });
 
     return payment;

@@ -48,9 +48,15 @@ export class WalletsRepository {
     const { walletId, amount, description } = walletCreditDto;
     const id = new Types.ObjectId(walletId);
 
-    await this.walletModel.findByIdAndUpdate(id, {
-      $inc: { balance: amount },
-    });
+    const walletBal = await this.walletModel.findByIdAndUpdate(
+      id,
+      {
+        $inc: { balance: amount },
+      },
+      {
+        new: true,
+      },
+    );
 
     const payload = {
       walletId,
@@ -61,6 +67,7 @@ export class WalletsRepository {
 
     const transactionCreation =
       await this.transactionsRepository.createTransaction(payload);
+    return walletBal;
   }
 
   async debitWallet(walletDebitDto: WalletDebitDto) {
