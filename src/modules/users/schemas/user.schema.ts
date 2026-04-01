@@ -46,6 +46,21 @@ export class User {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   referredBy: Types.ObjectId;
 
+  @Prop({
+    type: [
+      {
+        _id: false,
+        userId: { type: Types.ObjectId, ref: 'User', required: true },
+        level: { type: Number, required: true },
+      },
+    ],
+    default: [],
+  })
+  referralChain: {
+    userId: Types.ObjectId;
+    level: number;
+  }[];
+
   @Prop({ default: false })
   isVerified: boolean;
 
@@ -76,3 +91,4 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+UserSchema.index({ 'referralChain.userId': 1 });

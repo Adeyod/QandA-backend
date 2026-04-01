@@ -8,7 +8,7 @@ import { User, UserDocument } from '../schemas/user.schema';
 export class UsersRepository {
   constructor(@InjectModel('User') private userModel: Model<UserDocument>) {}
 
-  async findById(id: Types.ObjectId) {
+  async findById(id: Types.ObjectId): Promise<UserDocument | null> {
     return this.userModel.findById(id);
   }
 
@@ -19,9 +19,17 @@ export class UsersRepository {
     return user;
   }
 
-  async create(data: Partial<User>): Promise<UserDocument> {
+  async create(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+    referredBy: string | undefined;
+  }): Promise<UserDocument> {
     let refCode: string;
     let exists = true;
+    let referralChain: { userId: Types.ObjectId; level: number }[] = [];
 
     do {
       const code = generateRefCode();
@@ -32,13 +40,44 @@ export class UsersRepository {
       exists = !!existing;
     } while (exists);
 
-    data.referralCode = refCode;
+    const referralCode = refCode;
 
-    const user = new this.userModel(data);
+    let referredById: Types.ObjectId | null = null;
+
+    if (data.referredBy) {
+      const parent = await this.userModel.findOne({
+        referralCode: data.referredBy,
+      });
+
+      if (parent) {
+        referredById = parent?._id;
+      }
+
+      if (parent) {
+        const parentChain = parent.referralChain || [];
+
+        referralChain = [
+          { userId: parent._id, level: 1 },
+          ...parentChain.slice(0, 2).map((item) => ({
+            userId: item.userId,
+            level: item.level + 1,
+          })),
+        ];
+      }
+    }
+
+    const user = new this.userModel({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      password: data.password,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      referralCode: referralCode,
+      referredBy: referredById || null,
+      referralChain: referralChain,
+    });
     await user.save();
 
-    console.log('refCode:', refCode);
-    console.log('Created user:', user);
     return user;
   }
 
@@ -46,6 +85,30 @@ export class UsersRepository {
     id: Types.ObjectId,
     data: Partial<User>,
   ): Promise<UserDocument | null> {
-    return await this.userModel.findByIdAndUpdate(id, data, { new: true });
+    return await this.userModel.findByIdAndUpdate(id, data, {
+      returnDocument: 'after',
+    });
+  }
+
+  async queryAllReferredBy(userId: Types.ObjectId) {
+    const referrals = await this.userModel.aggregate([
+      {
+        $match: { _id: userId },
+      },
+      {
+        $graphLookup: {
+          from: 'users',
+          startWith: '$referredBy',
+          connectFromField: 'referredBy',
+          connectToField: '_id',
+          as: 'referralChain',
+          maxDepth: 2,
+          depthField: 'level',
+        },
+      },
+    ]);
+
+    console.log('referrals:', referrals);
+    return referrals;
   }
 }

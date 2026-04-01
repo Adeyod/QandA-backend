@@ -1,9 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
 import { generatePaymentReference } from 'src/common/utils/helper';
 import { Plan, PLAN_PRICES } from 'src/modules/users/schemas/user.schema';
-import { PaymentResponseDto } from '../dto/payment-response.dto';
 import {
   Payment,
   PaymentDocument,
@@ -64,7 +68,7 @@ export class PaymentsRepository {
   async getPaymentByRefAndUserId(
     reference: string,
     userId: Types.ObjectId,
-  ): Promise<PaymentResponseDto | null> {
+  ): Promise<PaymentDocument | null> {
     const payment = await this.paymentModel.findOne({
       providerReference: reference,
       userId,
@@ -76,13 +80,19 @@ export class PaymentsRepository {
   async updatePaymentStatusUsingPaymentId(
     paymentId: Types.ObjectId,
     status: PaymentStatus,
-  ): Promise<PaymentResponseDto | null> {
+  ): Promise<PaymentDocument | null> {
     const paidAt = new Date(Date.now());
     console.log('paidAt:', paidAt);
-    const payment = await this.paymentModel.findByIdAndUpdate(paymentId, {
-      status,
-      paidAt,
-    });
+    const payment = await this.paymentModel.findByIdAndUpdate(
+      paymentId,
+      {
+        status,
+        paidAt,
+      },
+      {
+        returnDocument: 'after',
+      },
+    );
 
     return payment;
   }
@@ -91,7 +101,7 @@ export class PaymentsRepository {
     userId: Types.ObjectId,
     plan: Plan,
     status: PaymentStatus,
-  ): Promise<PaymentResponseDto | null> {
+  ): Promise<PaymentDocument | null> {
     const existing = await this.paymentModel.findOne({
       userId,
       plan,
@@ -106,14 +116,14 @@ export class PaymentsRepository {
     id: Types.ObjectId,
     authorizationUrl: string,
     providerReference: string,
-  ): Promise<PaymentResponseDto | null> {
+  ): Promise<PaymentDocument | null> {
     const update = await this.paymentModel.findByIdAndUpdate(
       id,
       {
         authorizationUrl: authorizationUrl,
         providerReference: providerReference,
       },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     return update;
@@ -121,26 +131,102 @@ export class PaymentsRepository {
 
   async setPendingPaymentToExpired(
     id: Types.ObjectId,
-  ): Promise<PaymentResponseDto | null> {
+  ): Promise<PaymentDocument | null> {
     const updateStatus = await this.paymentModel.findByIdAndUpdate(
       id,
       { status: PaymentStatus.EXPIRED },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     return updateStatus;
   }
 
   async findSuccessfulPaymentPlan(
-    id: Types.ObjectId,
+    userId: Types.ObjectId,
     plan: Plan,
-  ): Promise<PaymentResponseDto | null> {
+  ): Promise<PaymentDocument | null> {
     const intent = await this.paymentModel.findOne({
-      _id: id,
-      plan: plan,
+      userId,
+      plan,
       status: PaymentStatus.SUCCESSFUL,
+      verified: true,
     });
 
     return intent;
+  }
+
+  async getAllPaymentsOfAUserWithUserId(
+    userId: Types.ObjectId,
+  ): Promise<PaymentDocument[] | null> {
+    const payments = await this.paymentModel.find({ userId });
+    console.log('payments:', payments);
+    return payments;
+  }
+
+  async getAllPayments(
+    queryWithPaginationsDto: QueryWithPaginationDto,
+  ): Promise<{
+    paymentObj: PaymentDocument[] | null;
+    totalPages: number;
+    totalCount: number;
+  }> {
+    const { page, limit, searchParams } = queryWithPaginationsDto;
+
+    let query = this.paymentModel.find();
+
+    if (searchParams) {
+      const regex = new RegExp(searchParams, 'i');
+
+      const isBooleanSearch =
+        searchParams.toLowerCase() === 'true' ||
+        searchParams.toLowerCase() === 'false';
+
+      query = query.where({
+        $or: [
+          { plan: { $regex: regex } },
+          { provider: { $regex: regex } },
+          { status: { $regex: regex } },
+          ...(isBooleanSearch
+            ? [{ verified: searchParams.toLowerCase() === 'true' }]
+            : []),
+        ],
+      });
+    }
+
+    const count = await query.clone().countDocuments();
+    let pages = 0;
+
+    if (page !== undefined && limit !== undefined && count !== 0) {
+      const offset = (page - 1) * limit;
+
+      query = query.skip(offset).limit(limit);
+      pages = Math.ceil(count / limit);
+
+      if (page > pages) {
+        throw new NotFoundException({
+          message: 'Page not found.',
+          success: false,
+          status: 404,
+        });
+      }
+    }
+
+    const payments = await query.sort({ createdAt: -1 });
+
+    if (payments.length === 0) {
+      throw new NotFoundException({
+        message: 'Payments not found.',
+        success: false,
+        status: 404,
+      });
+    }
+
+    const response = {
+      totalCount: count,
+      totalPages: pages,
+      paymentObj: payments,
+    };
+
+    return response;
   }
 }

@@ -138,7 +138,7 @@ export class QuestionsController {
     return await this.questionsService.getQuestionsSummary();
   }
 
-  @Get('free-questions-per-plan/:plan')
+  @Get('free-questions-per-plan')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')

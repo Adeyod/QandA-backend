@@ -34,9 +34,9 @@ export class PlansGuard implements CanActivate {
       });
     }
 
-    const plans = ['SECONDARY', 'TERTIARY'];
+    const plans = ['SECONDARY', 'TERTIARY', 'OTHERS'];
 
-    const hasPlan = user.plans.some((p) => p.plan === plan);
+    const hasPlan = user.plans.some((p) => p === plan);
     // const hasPlan = plans.some((p) => p === plan);
 
     if (!hasPlan) {

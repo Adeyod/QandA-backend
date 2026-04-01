@@ -9,7 +9,6 @@ import { TransactionsRepository } from 'src/modules/transactions/repositories/tr
 import { TransactionType } from 'src/modules/transactions/schemas/transaction.schema';
 import { WalletCreditDto } from '../dto/wallet-credit.dto';
 import { WalletDebitDto } from '../dto/wallet-debit.dto';
-import { WalletResponseDto } from '../dto/wallet-response.dto';
 import { WalletDocument } from '../schemas/wallet.schema';
 
 @Injectable()
@@ -19,7 +18,7 @@ export class WalletsRepository {
     private transactionsRepository: TransactionsRepository,
   ) {}
 
-  async createWallet(userId: string): Promise<WalletResponseDto> {
+  async createWallet(userId: string): Promise<WalletDocument> {
     const user = new Types.ObjectId(userId);
     const newWallet = await new this.walletModel({
       userId: user,
@@ -29,14 +28,14 @@ export class WalletsRepository {
     return newWallet;
   }
 
-  async findWalletByUserId(userId: string): Promise<WalletResponseDto | null> {
+  async findWalletByUserId(userId: string): Promise<WalletDocument | null> {
     const user = new Types.ObjectId(userId);
 
     const wallet = await this.walletModel.findOne({ userId: user });
 
     return wallet;
   }
-  async findWalletById(walletId: string): Promise<WalletResponseDto | null> {
+  async findWalletById(walletId: string): Promise<WalletDocument | null> {
     const id = new Types.ObjectId(walletId);
 
     const wallet = await this.walletModel.findById(id);
@@ -44,7 +43,9 @@ export class WalletsRepository {
     return wallet;
   }
 
-  async creditWallet(walletCreditDto: WalletCreditDto) {
+  async creditWallet(
+    walletCreditDto: WalletCreditDto,
+  ): Promise<WalletDocument | null> {
     const { walletId, amount, description } = walletCreditDto;
     const id = new Types.ObjectId(walletId);
 
@@ -54,7 +55,7 @@ export class WalletsRepository {
         $inc: { balance: amount },
       },
       {
-        new: true,
+        returnDocument: 'after',
       },
     );
 

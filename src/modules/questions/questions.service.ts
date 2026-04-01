@@ -46,7 +46,7 @@ export class QuestionsService {
   }
 
   async getFreeQuestionsPerPlan(getQuestionsDto: GetQuestionsDto) {
-    const { plan, year, subject } = getQuestionsDto;
+    const { plan, year, subject, examType } = getQuestionsDto;
 
     const freeYears = ['2000', '2001'];
     if (!freeYears.includes(getQuestionsDto.year)) {
@@ -73,12 +73,13 @@ export class QuestionsService {
       plan,
       year,
       subject: getSubject._id.toString(),
+      examType,
     };
     return await this.questionsRepository.getFreeQuestions(input);
   }
 
   async getPaidQuestionsPerPlan(getQuestionsDto: GetQuestionsDto) {
-    const { plan, year, subject } = getQuestionsDto;
+    const { plan, year, subject, examType } = getQuestionsDto;
     const getSubject = await this.subjectsRepository.findByName(
       subject.trim().toLowerCase(),
     );
@@ -91,14 +92,18 @@ export class QuestionsService {
       });
     }
 
-    console.log('getSubject:', getSubject);
     const input = {
       plan,
       year,
       subject: getSubject._id.toString(),
+      examType,
     };
     const questions = await this.questionsRepository.getPaidQuestions(input);
-    console.log('service questions:', questions);
+    console.log(
+      'service questions:',
+      questions.map((q) => q.apiQuestionId),
+    );
+    console.log('service questions length:', questions.length);
     return questions;
   }
 }

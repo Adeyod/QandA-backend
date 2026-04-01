@@ -1,9 +1,11 @@
 import {
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +15,7 @@ import { GetCurrentUser } from 'src/common/decorators/get-current-user.decorator
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
 import { ApiResponseDto } from 'src/common/dto/api-response.dto';
+import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import type { JwtUser } from 'src/common/types/jwt-user.type';
@@ -65,5 +68,74 @@ export class PaymentsController {
   ) {
     // console.log('Body:', req.body);
     return await this.paymentsService.handleWebhook(provider, req);
+  }
+
+  @Get('get-all-user-payments/:userId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER, Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('All payments of this user fetched successfully.')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get all payments for a user.',
+    description:
+      'This is the endpoint for fetching all the payments of a user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: "User's payments fetched successfully.",
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Unable to fetch payments',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many requests. Rate limit exceeded',
+  })
+  async getAllPaymentsOfAUserByUserId(
+    @Param('userId') userId: string,
+    @GetCurrentUser() user: JwtUser,
+  ) {
+    return this.paymentsService.getAllPaymentsOfAUserByUserId(user, userId);
+  }
+
+  @Get('get-all-payments')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('All payments of fetched successfully.')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get all payments on the app.',
+    description:
+      'This is the endpoint for fetching all the paymentson the application.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Payments fetched successfully.',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Unable to fetch payments',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many requests. Rate limit exceeded',
+  })
+  async getAllPayments(
+    @Query() queryWithPaginationDto: QueryWithPaginationDto,
+  ) {
+    return this.paymentsService.getAllPayments(queryWithPaginationDto);
   }
 }

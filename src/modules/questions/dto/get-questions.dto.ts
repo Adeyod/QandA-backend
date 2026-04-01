@@ -23,4 +23,11 @@ export class GetQuestionsDto {
   })
   @IsString({ message: 'Year must be a string' })
   year: string;
+
+  @ApiProperty({
+    description: 'The exam type refers to the type of exam.',
+    example: 'utme',
+  })
+  @IsString({ message: 'Exam type must be a string' })
+  examType: string;
 }

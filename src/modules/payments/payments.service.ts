@@ -2,11 +2,15 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { Types } from 'mongoose';
+import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
 import { JwtUser } from 'src/common/types/jwt-user.type';
 import { UsersRepository } from '../users/repositories/users.repository';
-import { Plan } from '../users/schemas/user.schema';
+import { Plan, Role } from '../users/schemas/user.schema';
+import { PaymentResponseDto } from './dto/payment-response.dto';
 import { IPaymentProvider } from './providers/interfaces/provider.interface';
 import { PaystackService } from './providers/paystack/paystack.service';
 import { PaymentsRepository } from './repositories/payment.repository';
@@ -49,9 +53,11 @@ export class PaymentsService {
     );
 
     if (alreadyPaid) {
-      return {
+      throw new UnauthorizedException({
         message: 'Plan already purchased.',
-      };
+        success: false,
+        status: 401,
+      });
     }
 
     const status = PaymentStatus.PENDING;
@@ -131,5 +137,51 @@ export class PaymentsService {
     }
 
     return await handler.handleWebhook(req);
+  }
+
+  async getAllPaymentsOfAUserByUserId(
+    user: JwtUser,
+    userId: string,
+  ): Promise<PaymentResponseDto[]> {
+    const { sub, role } = user;
+
+    if (role !== Role.ADMIN) {
+      if (sub.toString() !== userId) {
+        throw new UnauthorizedException({
+          message: 'You can only access your payments.',
+          success: false,
+          status: 401,
+        });
+      }
+    }
+
+    const id = new Types.ObjectId(userId);
+    const payments =
+      await this.paymentsRepository.getAllPaymentsOfAUserWithUserId(id);
+
+    if (!payments) {
+      throw new NotFoundException({
+        message: 'No payment found for this user',
+        success: false,
+        status: 404,
+      });
+    }
+    return payments;
+  }
+
+  async getAllPayments(queryWithPaginationDto: QueryWithPaginationDto) {
+    const payments = await this.paymentsRepository.getAllPayments(
+      queryWithPaginationDto,
+    );
+
+    if (!payments.paymentObj || payments.paymentObj.length === 0) {
+      throw new NotFoundException({
+        message: 'Payments not found.',
+        success: false,
+        status: 404,
+      });
+    }
+
+    return payments;
   }
 }

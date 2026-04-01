@@ -7,7 +7,6 @@ import {
 import { Types } from 'mongoose';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsersRepository } from './repositories/users.repository';
-import { User } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
@@ -84,7 +83,14 @@ export class UsersService {
     return others;
   }
 
-  async createUser(data: Partial<User>): Promise<UserResponseDto> {
+  async createUser(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+    referredBy: string | undefined;
+  }): Promise<UserResponseDto> {
     const user = await this.usersRepository.create(data);
 
     if (!user) {

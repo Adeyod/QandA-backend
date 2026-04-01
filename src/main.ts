@@ -17,6 +17,8 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3000;
   app.setGlobalPrefix('/api/v1');
 
+  console.log('port:', port);
+
   const questionsQueue = app.get<Queue>(getQueueToken('questions-sync'));
   const mailQueue = app.get<Queue>(getQueueToken('mail'));
 
@@ -25,8 +27,10 @@ async function bootstrap() {
   serverAdapter.setBasePath('/admin/queues');
 
   // const repo = app.get(QuestionsRepository);
-
   // await repo.flattenOptions();
+
+  // const repo = app.get(WalletsRepository);
+  // await repo.createWallet('69b6e93307f1bf73531171cb');
 
   // Create Bull Board
   const { addQueue, removeQueue, replaceQueues } = createBullBoard({

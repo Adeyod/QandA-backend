@@ -42,7 +42,9 @@ export class AuthService {
     private refreshTokensService: RefreshTokensService,
   ) {}
   async registerUser(registerUserDto: RegisterUserDto) {
-    const { firstName, lastName, email, password, phoneNumber } =
+    console.log('registerUserDto:', registerUserDto);
+
+    const { firstName, lastName, email, password, phoneNumber, referredBy } =
       registerUserDto;
 
     const userExist = await this.usersRepository.findByEmail(email);
@@ -63,6 +65,7 @@ export class AuthService {
       email,
       phoneNumber,
       password: hashed,
+      referredBy: referredBy && referredBy,
     };
 
     const newUser = await this.usersRepository.create(payload);

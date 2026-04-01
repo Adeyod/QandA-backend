@@ -169,40 +169,59 @@ export class PaystackService implements IPaymentProvider {
             });
           }
 
-          if (userExist.referredBy) {
-            const referredBy = await this.usersRepository.findById(
-              userExist.referredBy,
-            );
+          userExist.plans.push(payment.plan);
 
-            if (!referredBy) {
-              throw new NotFoundException({
-                message: 'The person who referred this user is not found.',
-                success: false,
-                status: 404,
-              });
-            }
-
-            const wallet = await this.walletsRepository.findWalletByUserId(
-              referredBy._id.toString(),
-            );
-
-            if (!wallet) {
-              throw new NotFoundException({
-                message: 'User wallet not found.',
-                success: false,
-                status: 404,
-              });
-            }
+          if (userExist.referralChain && userExist.referralChain.length > 0) {
+            const levelPercentMap: Record<number, number> = {
+              1: 0.15,
+              2: 0.075,
+              3: 0.025,
+            };
 
             const formattedAmt = amount / 100;
-            const walletId = wallet._id.toString();
-            const refAmount = 0.25 * formattedAmt;
-            const description = `This is the referral bonus on the payment made by ${`${userExist.firstName} ${userExist.lastName}`} for ${payment.plan} plan.`;
 
-            const input = { walletId, amount: refAmount, description };
-            const update = await this.walletsRepository.creditWallet(input);
+            for (const ref of userExist.referralChain) {
+              const percent = levelPercentMap[ref.level];
+
+              if (!percent) {
+                continue;
+              }
+
+              const refUser = await this.usersRepository.findById(ref.userId);
+
+              if (!refUser) {
+                console.log(
+                  'I can not find ref user so i am continuing the rest.',
+                );
+                continue;
+              }
+
+              const wallet = await this.walletsRepository.findWalletByUserId(
+                refUser._id.toString(),
+              );
+
+              if (!wallet) {
+                console.log(
+                  'I can not find wallet of this user so i am continuing the rest.',
+                );
+                continue;
+              }
+
+              const rewardAmount = formattedAmt * percent;
+
+              const description = `Level ${ref.level} referral bonus from ${userExist.firstName} ${userExist.lastName}`;
+
+              const rewarded = await this.walletsRepository.creditWallet({
+                walletId: wallet._id.toString(),
+                amount: rewardAmount,
+                description,
+              });
+            }
           }
+
+          await userExist.save();
         }
+        await payment.save();
       }
 
       return { message: 'successful' };
