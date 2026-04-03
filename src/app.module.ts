@@ -7,17 +7,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import configuration from './config/configuration';
 import { MailModule } from './mail/mail.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { RefreshTokensModule } from './modules/refresh-tokens/refresh-tokens.module';
-import { TokensModule } from './modules/tokens/tokens.module';
-import { UsersModule } from './modules/users/users.module';
-import { SubjectsModule } from './modules/subjects/subjects.module';
-import { QuestionsModule } from './modules/questions/questions.module';
-import { QuestionsInjectionModule } from './modules/questions-injection/questions-injection.module';
-import { PaymentsModule } from './modules/payments/payments.module';
-import { WalletsModule } from './modules/wallets/wallets.module';
-import { TransactionsModule } from './modules/transactions/transactions.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { QuestionsInjectionModule } from './modules/questions-injection/questions-injection.module';
+import { QuestionsModule } from './modules/questions/questions.module';
+import { RefreshTokensModule } from './modules/refresh-tokens/refresh-tokens.module';
+import { SubjectsModule } from './modules/subjects/subjects.module';
+import { TokensModule } from './modules/tokens/tokens.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
+import { UsersModule } from './modules/users/users.module';
+import { WalletsModule } from './modules/wallets/wallets.module';
 
 @Module({
   imports: [
@@ -61,15 +61,35 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 
     BullModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.getOrThrow<string>(
-            'envValues.redis_host',
-            'localhost',
-          ),
-          port: configService.getOrThrow<number>('envValues.redis_port', 6379),
-        },
-      }),
+      // useFactory: (configService: ConfigService) => ({
+      //   redis: {
+      //     host: configService.getOrThrow<string>(
+      //       'envValues.redis_host',
+      //       'localhost',
+      //     ),
+      //     port: configService.getOrThrow<number>('envValues.redis_port', 6379),
+      //   },
+      // }),
+
+      useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
+
+        if (redisUrl) {
+          return {
+            redis: {
+              url: redisUrl,
+              maxRetriesPerRequest: null,
+            },
+          };
+        }
+
+        return {
+          redis: {
+            host: 'localhost',
+            port: 6379,
+          },
+        };
+      },
     }),
     MailModule,
     AuthModule,

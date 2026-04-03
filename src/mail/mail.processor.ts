@@ -5,26 +5,38 @@ import * as ejs from 'ejs';
 import * as fs from 'fs';
 import * as nodemailer from 'nodemailer';
 import { join } from 'path';
+import { Resend } from 'resend';
 import { SendEmailJob } from './interface/mail.interface';
 
 @Processor('mail')
 export class MailProcessor {
-  private transporter: nodemailer.Transporter;
+  private transporter?: nodemailer.Transporter;
+  private resend?: Resend;
   private templateCache = new Map<string, string>();
+  private isProduction: boolean;
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.getOrThrow<string>('SMTP_HOST'),
-      port: this.configService.getOrThrow<number>('SMTP_PORT'),
-      secure: this.configService.getOrThrow<string>('SMTP_SECURE') === 'true',
-      auth: {
-        user: this.configService.getOrThrow<string>('SMTP_USER'),
-        pass: this.configService.getOrThrow<string>('SMTP_PASS'),
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+    this.isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
+
+    if (this.isProduction) {
+      this.resend = new Resend(
+        this.configService.getOrThrow<string>('RESEND_API_KEY'),
+      );
+    } else {
+      this.transporter = nodemailer.createTransport({
+        host: this.configService.getOrThrow<string>('SMTP_HOST'),
+        port: this.configService.getOrThrow<number>('SMTP_PORT'),
+        secure: this.configService.getOrThrow<string>('SMTP_SECURE') === 'true',
+        auth: {
+          user: this.configService.getOrThrow<string>('SMTP_USER'),
+          pass: this.configService.getOrThrow<string>('SMTP_PASS'),
+        },
+        tls: {
+          rejectUnauthorized: false,
+        },
+      });
+    }
   }
 
   private getTemplate(templateName: string): string {
@@ -56,14 +68,25 @@ export class MailProcessor {
       const template = this.getTemplate(templateName);
       const html = ejs.render(template, templateData);
 
-      const info = await this.transporter.sendMail({
-        from: `<${this.configService.get<string>('SMTP_FROM')}>`,
-        to,
-        subject,
-        html,
-      });
+      if (this.isProduction && this.resend) {
+        const response = await this.resend.emails.send({
+          from: this.configService.getOrThrow<string>('RESEND_FROM'),
+          to,
+          subject,
+          html,
+        });
 
-      console.log('Email response:', info);
+        console.log('response:', response);
+      } else if (this.transporter) {
+        const info = await this.transporter.sendMail({
+          from: `<${this.configService.get<string>('SMTP_FROM')}>`,
+          to,
+          subject,
+          html,
+        });
+
+        console.log('Email response:', info);
+      }
 
       console.log(`Email sent to ${to}`);
     } catch (error) {
