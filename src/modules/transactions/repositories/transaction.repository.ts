@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
+import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { TransactionCreationDto } from '../dto/transaction-creation.dto';
 import { TransactionResponseDto } from '../dto/transaction-response.dto';
 import { TransactionDocument } from '../schemas/transaction.schema';

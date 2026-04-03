@@ -6,16 +6,16 @@ export type SyncProgressDocument = SyncProgress & Document;
 @Schema({ timestamps: true })
 export class SyncProgress {
   @Prop({ required: true })
-  subject: string;
+  subject!: string;
 
   @Prop({ required: true })
-  year: number;
+  year!: number;
 
   @Prop({ default: 1 })
-  page: number;
+  page!: number;
 
   @Prop({ default: false })
-  completed: boolean;
+  completed!: boolean;
 }
 
 export const SyncProgressSchema = SchemaFactory.createForClass(SyncProgress);

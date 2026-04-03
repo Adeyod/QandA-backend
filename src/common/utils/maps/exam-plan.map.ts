@@ -1,4 +1,4 @@
-import { Plan } from 'src/modules/users/schemas/user.schema';
+import { Plan } from '../../../modules/users/schemas/user.schema';
 
 export const EXAM_PLAN_MAP: Record<string, Plan> = {
   // SECONDARY

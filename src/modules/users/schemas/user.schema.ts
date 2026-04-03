@@ -23,28 +23,28 @@ export const PLAN_PRICES: Record<Plan, number> = {
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
-  email: string;
+  email!: string;
 
   @Prop({ required: true })
-  password: string;
+  password!: string;
 
   @Prop({ type: String, enum: Role, default: Role.USER })
-  role: Role;
+  role!: Role;
 
   @Prop({ required: true })
-  firstName: string;
+  firstName!: string;
 
   @Prop({ required: true })
-  lastName: string;
+  lastName!: string;
 
   @Prop({ required: true })
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @Prop({ required: false })
-  referralCode: string;
+  referralCode!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
-  referredBy: Types.ObjectId;
+  referredBy!: Types.ObjectId;
 
   @Prop({
     type: [
@@ -56,23 +56,23 @@ export class User {
     ],
     default: [],
   })
-  referralChain: {
+  referralChain!: {
     userId: Types.ObjectId;
     level: number;
   }[];
 
   @Prop({ default: false })
-  isVerified: boolean;
+  isVerified!: boolean;
 
   @Prop({ default: false })
-  hasPaid: boolean;
+  hasPaid!: boolean;
 
   @Prop({
     type: [String],
     enum: Plan,
     default: [],
   })
-  plans: Plan[];
+  plans!: Plan[];
 
   @Prop({
     type: {
@@ -83,7 +83,7 @@ export class User {
     _id: false,
     default: null,
   })
-  device: {
+  device!: {
     deviceId: string; // will be generated from frontend if the user does not have one
     deviceName: string; // comes from frontend
     lastLogin: Date;

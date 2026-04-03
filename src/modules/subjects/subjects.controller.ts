@@ -16,12 +16,12 @@ import {
   ApiResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
-import { ApiResponseDto } from 'src/common/dto/api-response.dto';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { SuccessMessage } from '../../common/decorators/success-message.decorator';
+import { ApiResponseDto } from '../../common/dto/api-response.dto';
+import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { Role } from '../users/schemas/user.schema';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { SubjectResponseDto } from './dto/subject-response.dto';

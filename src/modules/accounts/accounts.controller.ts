@@ -10,14 +10,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { GetCurrentUser } from 'src/common/decorators/get-current-user.decorator';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { SuccessMessage } from 'src/common/decorators/success-message.decorator';
-import { ApiResponseDto } from 'src/common/dto/api-response.dto';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import type { JwtUser } from 'src/common/types/jwt-user.type';
+import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { SuccessMessage } from '../../common/decorators/success-message.decorator';
+import { ApiResponseDto } from '../../common/dto/api-response.dto';
+import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import type { JwtUser } from '../../common/types/jwt-user.type';
 import { Role } from '../users/schemas/user.schema';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dtos/create-account.dto';

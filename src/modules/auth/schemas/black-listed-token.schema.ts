@@ -6,10 +6,10 @@ export type BlacklistedTokenDocument = BlacklistedToken & Document;
 @Schema({ timestamps: true })
 export class BlacklistedToken {
   @Prop({ required: true })
-  token: string;
+  token!: string;
 
   @Prop({ required: true })
-  expiresAt: Date;
+  expiresAt!: Date;
 }
 
 export const BlacklistedTokenSchema =

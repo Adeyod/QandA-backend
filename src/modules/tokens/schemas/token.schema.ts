@@ -11,16 +11,16 @@ export enum TokenPurpose {
 @Schema({ timestamps: true })
 export class Token {
   @Prop({ required: true, enum: TokenPurpose })
-  purpose: TokenPurpose;
+  purpose!: TokenPurpose;
 
   @Prop({ required: true })
-  token: string;
+  token!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  user: Types.ObjectId;
+  user!: Types.ObjectId;
 
   @Prop({ required: true, expires: 0 })
-  expiresAt: Date;
+  expiresAt!: Date;
 }
 
 export const TokenSchema = SchemaFactory.createForClass(Token);

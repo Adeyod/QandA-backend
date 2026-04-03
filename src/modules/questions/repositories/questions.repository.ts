@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
-import { EXAM_PLAN_MAP } from 'src/common/utils/maps/exam-plan.map';
+import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
+import { EXAM_PLAN_MAP } from '../../../common/utils/maps/exam-plan.map';
 import { GetQuestionsDto } from '../dto/get-questions.dto';
 import { QuestionDocument } from '../schemas/question.schema';
 

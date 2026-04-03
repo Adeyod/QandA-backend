@@ -7,7 +7,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Match } from 'src/common/decorators/match.decorator';
+import { Match } from '../../../common/decorators/match.decorator';
 
 export class ResetPasswordDto {
   @ApiProperty({
@@ -24,7 +24,7 @@ export class ResetPasswordDto {
     message:
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
-  password: string;
+  password!: string;
 
   @ApiProperty({
     description: 'User confirm password',
@@ -33,7 +33,7 @@ export class ResetPasswordDto {
   @Match('password', {
     message: 'Password and confirm password mush match',
   })
-  confirmPassword: string;
+  confirmPassword!: string;
 
   @ApiProperty({
     description: 'Password reset token',
@@ -42,5 +42,5 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: 'Token is required' })
   @IsString({ message: 'Token is a string' })
   @Length(6, 6)
-  token: string;
+  token!: string;
 }

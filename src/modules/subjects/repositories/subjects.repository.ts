@@ -1,7 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
+import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { SubjectResponseDto } from '../dto/subject-response.dto';
 import { SubjectDocument } from '../schemas/subject.schema';
 

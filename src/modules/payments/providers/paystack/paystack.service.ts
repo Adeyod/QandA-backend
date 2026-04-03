@@ -9,8 +9,8 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { Request } from 'express';
 import { Types } from 'mongoose';
-import { UsersRepository } from 'src/modules/users/repositories/users.repository';
-import { WalletsRepository } from 'src/modules/wallets/repositories/wallets.repository';
+import { UsersRepository } from '../../../../modules/users/repositories/users.repository';
+import { WalletsRepository } from '../../../../modules/wallets/repositories/wallets.repository';
 import { PaymentsRepository } from '../../repositories/payment.repository';
 import { PaymentStatus } from '../../schemas/payment.schema';
 import {

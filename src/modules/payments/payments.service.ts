@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Types } from 'mongoose';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
-import { JwtUser } from 'src/common/types/jwt-user.type';
+import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { JwtUser } from '../../common/types/jwt-user.type';
 import { UsersRepository } from '../users/repositories/users.repository';
 import { Plan, Role } from '../users/schemas/user.schema';
 import { PaymentResponseDto } from './dto/payment-response.dto';

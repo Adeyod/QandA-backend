@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
+import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { SubjectsRepository } from './repositories/subjects.repository';
 

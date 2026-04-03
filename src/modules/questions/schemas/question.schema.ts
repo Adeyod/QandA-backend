@@ -1,51 +1,51 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Plan } from 'src/modules/users/schemas/user.schema';
+import { Plan } from '../../../modules/users/schemas/user.schema';
 
 export type QuestionDocument = Question & Document;
 
 @Schema({ _id: false })
 export class Option {
-  label: string;
-  type: string;
+  label!: string;
+  type!: string;
 }
 @Schema({ timestamps: true })
 export class Question {
   @Prop({ required: true, trim: true })
-  question: string;
+  question!: string;
 
   @Prop({ type: Object, default: {} })
-  options: Option;
+  options!: Option;
 
   @Prop({ required: true })
-  apiQuestionId: string;
+  apiQuestionId!: string;
 
   @Prop({ default: '' })
-  section: string;
+  section!: string;
 
   @Prop({ default: '' })
-  image: string;
+  image!: string;
 
   @Prop({ type: String, default: '' })
-  answer: string;
+  answer!: string;
 
   @Prop({ type: String, default: '' })
-  solution: string;
+  solution!: string;
 
   @Prop({ type: String, default: '' })
-  examType: string;
+  examType!: string;
 
   @Prop({ type: String, default: '' })
-  examYear: string;
+  examYear!: string;
 
   @Prop({ required: true })
-  apiSubjectName: string;
+  apiSubjectName!: string;
 
   @Prop({ required: false })
-  plan: Plan;
+  plan!: Plan;
 
   @Prop({ required: true, ref: 'Subject' })
-  subject: Types.ObjectId;
+  subject!: Types.ObjectId;
 }
 
 export const QuestionSchema = SchemaFactory.createForClass(Question);

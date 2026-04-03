@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
-import { generatePaymentReference } from 'src/common/utils/helper';
-import { Plan, PLAN_PRICES } from 'src/modules/users/schemas/user.schema';
+import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
+import { generatePaymentReference } from '../../../common/utils/helper';
+import { Plan, PLAN_PRICES } from '../../users/schemas/user.schema';
 import {
   Payment,
   PaymentDocument,

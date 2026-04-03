@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import type { Job, Queue } from 'bull';
 import { Model, Types } from 'mongoose';
-import { EXAM_PLAN_MAP } from 'src/common/utils/maps/exam-plan.map';
+import { EXAM_PLAN_MAP } from '../../common/utils/maps/exam-plan.map';
 import { QuestionsRepository } from '../questions/repositories/questions.repository';
 import { InjectQuestionsDto } from './dto/inject-questions.dto';
 import {

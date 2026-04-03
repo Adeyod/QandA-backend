@@ -11,16 +11,16 @@ export enum TransactionType {
 @Schema({ timestamps: true })
 export class Transaction {
   @Prop({ type: Types.ObjectId, ref: 'Wallet', required: true })
-  walletId: Types.ObjectId;
+  walletId!: Types.ObjectId;
 
   @Prop({ required: true })
-  amount: number;
+  amount!: number;
 
   @Prop({ type: String, enum: TransactionType, required: true })
-  type: TransactionType;
+  type!: TransactionType;
 
   @Prop({ type: String, required: true })
-  description: string;
+  description!: string;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

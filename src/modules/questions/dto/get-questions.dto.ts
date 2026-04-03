@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsString } from 'class-validator';
-import { Plan } from 'src/modules/users/schemas/user.schema';
+import { Plan } from '../../../modules/users/schemas/user.schema';
 
 export class GetQuestionsDto {
   @ApiProperty({
@@ -8,26 +8,26 @@ export class GetQuestionsDto {
     example: Plan.SECONDARY,
   })
   @IsEnum(Plan)
-  plan: Plan;
+  plan!: Plan;
 
   @ApiProperty({
     description: 'This is the subject name',
     example: 'chemistry',
   })
   @IsString({ message: 'Subject must be a string' })
-  subject: string;
+  subject!: string;
 
   @ApiProperty({
     description: 'This is the selected year',
     example: '2001',
   })
   @IsString({ message: 'Year must be a string' })
-  year: string;
+  year!: string;
 
   @ApiProperty({
     description: 'The exam type refers to the type of exam.',
     example: 'utme',
   })
   @IsString({ message: 'Exam type must be a string' })
-  examType: string;
+  examType!: string;
 }

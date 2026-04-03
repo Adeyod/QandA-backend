@@ -5,8 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
-import { JwtUser } from 'src/common/types/jwt-user.type';
+import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { JwtUser } from '../../common/types/jwt-user.type';
 import { Role } from '../users/schemas/user.schema';
 import { CreateAccountDto } from './dtos/create-account.dto';
 import { AccountsRepository } from './repositories/account.repository';
