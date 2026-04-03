@@ -43,17 +43,32 @@ export class MailProcessor {
     }
   }
 
+  // private getTemplate(templateName: string): string {
+  //   let template = this.templateCache.get(templateName);
+
+  //   if (!template) {
+  //     const filePath = join(
+  //       process.cwd(),
+  //       'dist',
+  //       'src',
+  //       'templates',
+  //       templateName,
+  //     );
+
+  //     template = fs.readFileSync(filePath, 'utf-8');
+  //     this.templateCache.set(templateName, template);
+  //   }
+
+  //   return template;
+  // }
+
   private getTemplate(templateName: string): string {
     let template = this.templateCache.get(templateName);
 
     if (!template) {
-      const filePath = join(
-        process.cwd(),
-        'dist',
-        'src',
-        'templates',
-        templateName,
-      );
+      const filePath = join(__dirname, '..', 'templates', templateName);
+
+      console.log('Resolved template path:', filePath);
 
       template = fs.readFileSync(filePath, 'utf-8');
       this.templateCache.set(templateName, template);
