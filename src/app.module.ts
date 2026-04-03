@@ -98,10 +98,13 @@ import { WalletsModule } from './modules/wallets/wallets.module';
 
         // ✅ Production (Render)
         if (redisUrl) {
-          console.log('Using REDIS_URL (production)');
+          const redisArray = redisUrl.split(':');
+
+          const url = new URL(redisUrl);
           return {
             redis: {
-              url: redisUrl,
+              host: url.hostname,
+              port: Number(url.port),
               maxRetriesPerRequest: null,
             },
           };
