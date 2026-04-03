@@ -94,12 +94,11 @@ export class AuthService {
       console.log('newWallet:', newWallet);
     }
 
-    const mailResponse = await this.mailService.sendVerificationEmail(
+    await this.mailService.sendVerificationEmail(
       newUser.email,
       newUser.firstName,
       userToken.token,
     );
-    console.log('mailResponse:', mailResponse);
 
     return {
       data: null,
