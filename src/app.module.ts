@@ -59,25 +59,46 @@ import { WalletsModule } from './modules/wallets/wallets.module';
       }),
     }),
 
+    // BullModule.forRootAsync({
+    //   inject: [ConfigService],
+
+    //   useFactory: (configService: ConfigService) => {
+    //     const redisUrl = configService.getOrThrow<string>('REDIS_URL');
+
+    //     console.log('redisUrl:', redisUrl);
+
+    //     if (redisUrl && !redisUrl.includes('localhost')) {
+    //       console.log('Redis does not include localhost');
+    //       return {
+    //         redis: {
+    //           url: redisUrl,
+    //           maxRetriesPerRequest: null,
+    //         },
+    //       };
+    //     }
+
+    //     console.log('This is localhost redis');
+    //     return {
+    //       redis: {
+    //         host: 'localhost',
+    //         port: 6379,
+    //       },
+    //     };
+    //   },
+    // }),
+
     BullModule.forRootAsync({
       inject: [ConfigService],
-      // useFactory: (configService: ConfigService) => ({
-      //   redis: {
-      //     host: configService.getOrThrow<string>(
-      //       'envValues.redis_host',
-      //       'localhost',
-      //     ),
-      //     port: configService.getOrThrow<number>('envValues.redis_port', 6379),
-      //   },
-      // }),
-
       useFactory: (configService: ConfigService) => {
-        const redisUrl = configService.getOrThrow<string>('REDIS_URL');
+        const redisUrl = configService.get<string>('REDIS_URL');
 
-        console.log('redisUrl:', redisUrl);
+        console.log('Redis URL:', redisUrl || 'NOT SET');
 
-        if (redisUrl && !redisUrl.includes('localhost')) {
-          console.log('Redis does not include localhost');
+        console.log('All ENV:', process.env);
+
+        // ✅ Production (Render)
+        if (redisUrl) {
+          console.log('Using REDIS_URL (production)');
           return {
             redis: {
               url: redisUrl,
@@ -86,10 +107,11 @@ import { WalletsModule } from './modules/wallets/wallets.module';
           };
         }
 
-        console.log('This is localhost redis');
+        // ✅ Development (local)
+        console.log('Using localhost Redis (development)');
         return {
           redis: {
-            host: 'localhost',
+            host: '127.0.0.1',
             port: 6379,
           },
         };
