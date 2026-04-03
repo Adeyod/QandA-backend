@@ -17,10 +17,10 @@ export class MailProcessor {
 
   constructor(private configService: ConfigService) {
     this.isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
+      this.configService.getOrThrow<string>('NODE_ENV') === 'production';
 
     console.log('this.isProduction:', this.isProduction);
-    console.log('NODE_ENV:', this.configService.get<string>('NODE_ENV'));
+    console.log('NODE_ENV:', this.configService.getOrThrow<string>('NODE_ENV'));
 
     if (this.isProduction) {
       console.log('I am using resend because i am in production environment');

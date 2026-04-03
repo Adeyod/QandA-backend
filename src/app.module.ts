@@ -72,11 +72,12 @@ import { WalletsModule } from './modules/wallets/wallets.module';
       // }),
 
       useFactory: (configService: ConfigService) => {
-        const redisUrl = configService.get<string>('REDIS_URL');
+        const redisUrl = configService.getOrThrow<string>('REDIS_URL');
 
         console.log('redisUrl:', redisUrl);
 
-        if (redisUrl) {
+        if (redisUrl && !redisUrl.includes('localhost')) {
+          console.log('Redis does not include localhost');
           return {
             redis: {
               url: redisUrl,
@@ -85,6 +86,7 @@ import { WalletsModule } from './modules/wallets/wallets.module';
           };
         }
 
+        console.log('This is localhost redis');
         return {
           redis: {
             host: 'localhost',
