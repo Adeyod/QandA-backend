@@ -47,6 +47,8 @@ export class RefreshTokenStrategy extends PassportStrategy(
 
     const id = new Types.ObjectId(payload.sub);
 
+    console.log('id:', id);
+
     const user = await this.usersService.findUserById(id);
 
     if (!user) {
