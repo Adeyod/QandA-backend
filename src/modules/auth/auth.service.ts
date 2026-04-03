@@ -91,6 +91,7 @@ export class AuthService {
       const newWallet = await this.walletsRepository.createWallet(
         newUser._id.toString(),
       );
+      console.log('newWallet:', newWallet);
     }
 
     const mailResponse = await this.mailService.sendVerificationEmail(

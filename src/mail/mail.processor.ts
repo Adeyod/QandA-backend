@@ -19,7 +19,11 @@ export class MailProcessor {
     this.isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
 
+    console.log('this.isProduction:', this.isProduction);
+    console.log('NODE_ENV:', this.configService.get<string>('NODE_ENV'));
+
     if (this.isProduction) {
+      console.log('I am using resend because i am in production environment');
       this.resend = new Resend(
         this.configService.getOrThrow<string>('RESEND_API_KEY'),
       );

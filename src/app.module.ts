@@ -74,6 +74,8 @@ import { WalletsModule } from './modules/wallets/wallets.module';
       useFactory: (configService: ConfigService) => {
         const redisUrl = configService.get<string>('REDIS_URL');
 
+        console.log('redisUrl:', redisUrl);
+
         if (redisUrl) {
           return {
             redis: {
