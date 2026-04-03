@@ -18,50 +18,50 @@ export enum PaymentProvider {
 @Schema({ timestamps: true })
 export class Payment {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  userId!: Types.ObjectId;
 
   @Prop({ required: true, enum: Plan })
-  plan: Plan;
+  plan!: Plan;
 
   @Prop({ required: true })
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @Prop({ required: true })
-  amount: number; // store in kobo
+  amount!: number; // store in kobo
 
   @Prop({ required: true, unique: true })
-  reference: string; // internal reference
+  reference!: string; // internal reference
 
   @Prop()
-  providerReference: string; // paystack or other provider reference
+  providerReference!: string; // paystack or other provider reference
 
   @Prop()
-  authorizationUrl: string; // paystack or other provider authorization_url
+  authorizationUrl!: string; // paystack or other provider authorization_url
 
   @Prop({
     type: String,
     enum: PaymentProvider,
     default: PaymentProvider.PAYSTACK,
   })
-  provider: PaymentProvider;
+  provider!: PaymentProvider;
 
   @Prop({
     type: String,
     enum: PaymentStatus,
     default: PaymentStatus.PENDING,
   })
-  status: PaymentStatus;
+  status!: PaymentStatus;
 
   @Prop({
     default: false,
   })
-  verified: boolean;
+  verified!: boolean;
 
   @Prop({ type: Object })
-  metadata: Record<string, any>; // flexible (store raw response if needed)
+  metadata!: Record<string, any>; // flexible (store raw response if needed)
 
   @Prop({ default: null })
-  paidAt: Date;
+  paidAt!: Date;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

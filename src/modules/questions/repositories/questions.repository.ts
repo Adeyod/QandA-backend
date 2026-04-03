@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from 'src/common/dto/query-with-pagination';
+import { EXAM_PLAN_MAP } from 'src/common/utils/maps/exam-plan.map';
 import { GetQuestionsDto } from '../dto/get-questions.dto';
 import { QuestionDocument } from '../schemas/question.schema';
 
@@ -186,7 +187,7 @@ export class QuestionsRepository {
   }
 
   async getQuestionsSummaryRaw() {
-    return await this.questionModel.aggregate([
+    const summary = await this.questionModel.aggregate([
       {
         $group: {
           _id: {
@@ -251,6 +252,10 @@ export class QuestionsRepository {
         $sort: { subjectName: 1 },
       },
     ]);
+
+    console.log('summary:', summary);
+
+    return summary;
   }
 
   async getQuestionsTotal() {
@@ -377,18 +382,114 @@ export class QuestionsRepository {
     }
   }
 
-  // async flattenOptions() {
-  //   await this.questionModel.updateMany(
-  //     { 'options.0': { $exists: true } }, // array has at least 1 element
-  //     [
-  //       {
+  async backfillPlans() {
+    const BATCH_SIZE = 2000;
+
+    while (true) {
+      const questions = await this.questionModel
+        .find({
+          $or: [{ plan: { $exists: false } }, { plan: null }],
+        })
+        .limit(BATCH_SIZE);
+
+      if (questions.length === 0) {
+        console.log('✅ Migration complete');
+        break;
+      }
+
+      const bulkOps = questions
+        .map((q) => {
+          const examType = q.examType?.trim().toLowerCase();
+
+          console.log('examType:', examType);
+          console.log('q:', q);
+
+          const normalizedExamType = examType?.replace(/\s+/g, '-');
+
+          const plan = EXAM_PLAN_MAP[normalizedExamType];
+
+          if (!plan) {
+            console.warn(`Unknown examType: ${q.examType}`);
+            return null;
+          }
+
+          return {
+            updateOne: {
+              filter: { _id: q._id },
+              update: { $set: { plan } },
+            },
+          };
+        })
+        .filter(
+          (
+            op,
+          ): op is {
+            updateOne: {
+              filter: { _id: (typeof questions)[number]['_id'] };
+              update: { $set: { plan } };
+            };
+          } => op !== null,
+        );
+
+      if (bulkOps.length > 0) {
+        await this.questionModel.bulkWrite(bulkOps);
+      }
+
+      console.log(`✅ Updated ${bulkOps.length} questions`);
+    }
+  }
+
+  // async getQuestionsByExamYear() {
+  //   const EXAM_TYPES = [
+  //     'utme',
+  //     'post-utme',
+  //     'wassce',
+  //     'jamb',
+  //     'neco',
+  //     'ijmb',
+  //     'nursing',
+  //     'medical',
+  //     'law',
+  //     'coren',
+  //     'ican',
+  //     'anna',
+  //     'ielts',
+  //   ];
+
+  //   const docs = await this.questionModel.find({
+  //     examYear: { $in: EXAM_TYPES },
+  //     examType: { $regex: /^\d{4}$/ },
+  //   });
+  //   console.log('docs:', docs.length);
+
+  //   const bulkOps = docs.map((doc) => ({
+  //     updateOne: {
+  //       filter: { _id: doc._id },
+  //       update: {
   //         $set: {
-  //           options: { $arrayElemAt: ['$options', 0] }, // replace array with first element
+  //           examType: doc.examYear,
+  //           examYear: doc.examType,
   //         },
   //       },
-  //     ],
-  //   );
+  //     },
+  //   }));
+
+  //   await this.questionModel.bulkWrite(bulkOps);
+  //   console.log('bulkOps:', bulkOps.length);
   // }
+
+  async getAllExamTypes(): Promise<string[]> {
+    const examTypes = await this.questionModel.distinct('examType');
+
+    console.log('examTypes:', examTypes);
+    return examTypes;
+  }
+  async getAllExamYears(): Promise<string[]> {
+    const examYears = await this.questionModel.distinct('examYear');
+
+    console.log('examYears:', examYears);
+    return examYears;
+  }
 
   async flattenOptions() {
     // Step 1: Fetch all questions where options is an array with exactly 1 element

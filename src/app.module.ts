@@ -17,6 +17,7 @@ import { QuestionsInjectionModule } from './modules/questions-injection/question
 import { PaymentsModule } from './modules/payments/payments.module';
 import { WalletsModule } from './modules/wallets/wallets.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { AccountsModule } from './modules/accounts/accounts.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     PaymentsModule,
     WalletsModule,
     TransactionsModule,
+    AccountsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

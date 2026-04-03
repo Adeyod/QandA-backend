@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Plan } from 'src/modules/users/schemas/user.schema';
 
 export type QuestionDocument = Question & Document;
 
@@ -39,6 +40,9 @@ export class Question {
 
   @Prop({ required: true })
   apiSubjectName: string;
+
+  @Prop({ required: false })
+  plan: Plan;
 
   @Prop({ required: true, ref: 'Subject' })
   subject: Types.ObjectId;

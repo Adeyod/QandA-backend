@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import type { Job, Queue } from 'bull';
 import { Model, Types } from 'mongoose';
+import { EXAM_PLAN_MAP } from 'src/common/utils/maps/exam-plan.map';
 import { QuestionsRepository } from '../questions/repositories/questions.repository';
 import { InjectQuestionsDto } from './dto/inject-questions.dto';
 import {
@@ -38,35 +39,45 @@ export class QuestionsInjectionService {
     const { accessUser } = job.data;
     console.log('sync is called');
     const subjects = [
+      // {
+      //   name: 'accounting',
+      //   _id: '69be2a9e206c0f7de64f07a1',
+      // },
+      // {
+      //   name: 'economics',
+      //   _id: '69be2b2c206c0f7de64f0823',
+      // },
+
+      // {
+      //   name: 'government',
+      //   _id: '69be2af5206c0f7de64f0817',
+      // },
       {
-        name: 'englishlit',
-        _id: '69be2adf206c0f7de64f0813',
+        name: 'mathematics',
+        _id: '69bd4ca6b899fef942c0b067',
       },
-      {
-        name: 'chemistry',
-        _id: '69be2ac7206c0f7de64f080f',
-      },
+      // {
+      //   name: 'englishlit',
+      //   _id: '69be2adf206c0f7de64f0813',
+      // },
+      // {
+      //   name: 'chemistry',
+      //   _id: '69be2ac7206c0f7de64f080f',
+      // },
       {
         name: 'physics',
         _id: '69be2ab0206c0f7de64f07a5',
       },
 
-      {
-        name: 'government',
-        _id: '69be2af5206c0f7de64f0817',
-      },
-      {
-        name: 'crk',
-        _id: '69be2b08206c0f7de64f081b',
-      },
+      // {
+      //   name: 'crk',
+      //   _id: '69be2b08206c0f7de64f081b',
+      // },
       {
         name: 'geography',
         _id: '69be2b1a206c0f7de64f081f',
       },
-      {
-        name: 'economics',
-        _id: '69be2b2c206c0f7de64f0823',
-      },
+
       {
         name: 'irk',
         _id: '69be2b3a206c0f7de64f088d',
@@ -95,26 +106,17 @@ export class QuestionsInjectionService {
         name: 'biology',
         _id: '69bd4b05fc84500b1e2bb364',
       },
-      {
-        name: 'mathematics',
-        _id: '69bd4ca6b899fef942c0b067',
-      },
+
       {
         name: 'english',
         _id: '69bd417a74676c09ac65bc56',
       },
-      {
-        name: 'accounting',
-        _id: '69be2a9e206c0f7de64f07a1',
-      },
     ];
-    const startYear = 2000;
+    const startYear = 1979;
     const endYear = 2025;
 
     const API_KEY = accessUser;
     // const API_KEY = process.env.ALOC_API_KEY;
-
-    console.log('API_KEY:', API_KEY);
 
     for (const subject of subjects) {
       for (let year = startYear; year <= endYear; year++) {
@@ -162,18 +164,30 @@ export class QuestionsInjectionService {
               break;
             }
 
-            await this.questionsRepository.insertQuestions(
-              questions.map((q: any) => ({
-                question: q.question,
-                options: q.option,
-                apiQuestionId: q.id,
-                apiSubjectName: subject.name,
-                answer: q.answer,
-                examType: q.examtype,
-                examYear: q.examyear,
-                subject: new Types.ObjectId(subject._id),
-              })),
+            const inserted = await this.questionsRepository.insertQuestions(
+              questions.map((q: any) => {
+                const examType = q.examtype?.toLowerCase(); // normalize
+                const plan = EXAM_PLAN_MAP[examType];
+
+                if (!plan) {
+                  this.logger.warn(`Unknown examType: ${q.examtype}`);
+                }
+
+                return {
+                  question: q.question,
+                  options: q.option,
+                  apiQuestionId: q.id,
+                  plan: plan,
+                  apiSubjectName: subject.name,
+                  answer: q.answer,
+                  examType: examType,
+                  examYear: q.examyear,
+                  subject: new Types.ObjectId(subject._id),
+                };
+              }),
             );
+
+            console.log('inserted:', inserted);
 
             await this.progressModel.updateOne(
               { subject, year },

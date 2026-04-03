@@ -1,5 +1,4 @@
-import { Body, Controller, Get } from '@nestjs/common';
-import { InjectQuestionsDto } from './dto/inject-questions.dto';
+import { Controller, Get, Param } from '@nestjs/common';
 import { QuestionsInjectionService } from './questions-injection.service';
 
 @Controller('questions-injection')
@@ -8,9 +7,9 @@ export class QuestionsInjectionController {
     private readonly questionsInjectionService: QuestionsInjectionService,
   ) {}
 
-  @Get('inject')
-  async injectQuestions(@Body() injectQuestionsDto: InjectQuestionsDto) {
-    await this.questionsInjectionService.addSyncJob(injectQuestionsDto);
+  @Get('inject/:accessUser')
+  async injectQuestions(@Param('accessUser') accessUser: string) {
+    await this.questionsInjectionService.addSyncJob({ accessUser });
     return { message: 'Injection started in background' };
   }
 }

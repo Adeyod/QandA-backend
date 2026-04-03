@@ -109,7 +109,7 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
-  @SuccessMessage('All payments of fetched successfully.')
+  @SuccessMessage('All payments fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get all payments on the app.',

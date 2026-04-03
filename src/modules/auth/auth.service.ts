@@ -70,6 +70,8 @@ export class AuthService {
 
     const newUser = await this.usersRepository.create(payload);
 
+    console.log('newUser:', newUser);
+
     const token = generateCode(6);
     const input = {
       user: newUser._id,
@@ -78,10 +80,12 @@ export class AuthService {
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     };
     const userToken = await this.tokensRepository.create(input);
+    console.log('userToken:', userToken);
 
     const findWallet = await this.walletsRepository.findWalletByUserId(
       newUser._id.toString(),
     );
+    console.log('findWallet:', findWallet);
 
     if (!findWallet) {
       const newWallet = await this.walletsRepository.createWallet(
@@ -89,11 +93,12 @@ export class AuthService {
       );
     }
 
-    await this.mailService.sendVerificationEmail(
+    const mailResponse = await this.mailService.sendVerificationEmail(
       newUser.email,
       newUser.firstName,
       userToken.token,
     );
+    console.log('mailResponse:', mailResponse);
 
     return {
       data: null,
