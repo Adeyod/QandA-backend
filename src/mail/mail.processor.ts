@@ -69,6 +69,7 @@ export class MailProcessor {
       const filePath = join(__dirname, '..', 'templates', templateName);
 
       console.log('Resolved template path:', filePath);
+      console.log('Checking template exists:', fs.existsSync(filePath));
 
       template = fs.readFileSync(filePath, 'utf-8');
       this.templateCache.set(templateName, template);
