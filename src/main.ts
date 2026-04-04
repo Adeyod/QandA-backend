@@ -57,26 +57,26 @@ async function bootstrap() {
     (origin) => origin.trim(),
   );
 
-  app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ) => {
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error('Not allowed by CORS'), false);
-    },
-    credentials: true,
-  });
-
   // app.enableCors({
-  //   origin: true,
+  //   origin: (
+  //     origin: string | undefined,
+  //     callback: (err: Error | null, allow?: boolean) => void,
+  //   ) => {
+  //     if (!origin) return callback(null, true);
+
+  //     if (allowedOrigins.includes(origin)) {
+  //       return callback(null, true);
+  //     }
+
+  //     return callback(new Error('Not allowed by CORS'), false);
+  //   },
   //   credentials: true,
   // });
+
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   app.useGlobalInterceptors(new GlobalResponseInterceptor(app.get(Reflector)));
   app.useGlobalFilters(new MongoExceptionFilter());
