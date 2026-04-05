@@ -371,8 +371,14 @@ export class QuestionsRepository {
 
       if (newQuestions.length === 0) return;
 
+      console.log('newQuestions:', newQuestions);
       // insertMany with ordered: false to skip duplicates safely
-      await this.questionModel.insertMany(newQuestions, { ordered: false });
+      // const res = await this.questionModel.insertMany(newQuestions, {
+      //   ordered: false,
+      // });
+
+      const res = await this.questionModel.insertMany(newQuestions);
+      console.log('res:', res);
     } catch (error: any) {
       if (error.code === 11000) {
         console.warn('Duplicate questions skipped.');
@@ -508,7 +514,7 @@ export class QuestionsRepository {
     const bulkOps = questions.map((q) => ({
       updateOne: {
         filter: { _id: q._id },
-        update: { $set: { options: q.options[0] } },
+        update: { $set: { options: q.options && q.options[0] } },
       },
     }));
 

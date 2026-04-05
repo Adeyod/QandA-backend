@@ -19,11 +19,7 @@ export class MailProcessor {
     this.isProduction =
       this.configService.getOrThrow<string>('NODE_ENV') === 'production';
 
-    console.log('this.isProduction:', this.isProduction);
-    console.log('NODE_ENV:', this.configService.getOrThrow<string>('NODE_ENV'));
-
     if (this.isProduction) {
-      console.log('I am using resend because i am in production environment');
       this.resend = new Resend(
         this.configService.getOrThrow<string>('RESEND_API_KEY'),
       );
@@ -68,9 +64,6 @@ export class MailProcessor {
     if (!template) {
       const filePath = join(__dirname, '..', 'templates', templateName);
 
-      console.log('Resolved template path:', filePath);
-      console.log('Checking template exists:', fs.existsSync(filePath));
-
       template = fs.readFileSync(filePath, 'utf-8');
       this.templateCache.set(templateName, template);
     }
@@ -83,8 +76,6 @@ export class MailProcessor {
     try {
       const { to, subject, templateData, templateName } = job.data;
 
-      console.log('templateData:', templateData);
-
       const template = this.getTemplate(templateName);
       const html = ejs.render(template, templateData);
 
@@ -95,8 +86,6 @@ export class MailProcessor {
           subject,
           html,
         });
-
-        console.log('response:', response);
       } else if (this.transporter) {
         const info = await this.transporter.sendMail({
           from: `<${this.configService.get<string>('SMTP_FROM')}>`,

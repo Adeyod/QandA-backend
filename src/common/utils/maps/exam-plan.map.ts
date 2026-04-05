@@ -5,6 +5,7 @@ export const EXAM_PLAN_MAP: Record<string, Plan> = {
   utme: Plan.SECONDARY,
   'post-utme': Plan.SECONDARY,
   wassce: Plan.SECONDARY,
+  waec: Plan.SECONDARY,
   jamb: Plan.SECONDARY,
   neco: Plan.SECONDARY,
   ijmb: Plan.SECONDARY,

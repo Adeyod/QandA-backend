@@ -1,12 +1,19 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import type { Job, Queue } from 'bull';
 import { Model, Types } from 'mongoose';
 import { EXAM_PLAN_MAP } from '../../common/utils/maps/exam-plan.map';
 import { QuestionsRepository } from '../questions/repositories/questions.repository';
+import { SubjectsRepository } from '../subjects/repositories/subjects.repository';
 import { InjectQuestionsDto } from './dto/inject-questions.dto';
+import { QuestionInjectionDto } from './dto/question-injection.dto';
 import {
   SyncProgress,
   SyncProgressDocument,
@@ -18,6 +25,7 @@ export class QuestionsInjectionService {
 
   constructor(
     private readonly questionsRepository: QuestionsRepository,
+    private readonly subjectsRepository: SubjectsRepository,
 
     @InjectModel(SyncProgress.name)
     private readonly progressModel: Model<SyncProgressDocument>,
@@ -213,5 +221,63 @@ export class QuestionsInjectionService {
         }
       }
     }
+  }
+
+  async addQuestionManually(questionInjectionDto: QuestionInjectionDto) {
+    const { year, examType, subject, section, questions, type } =
+      questionInjectionDto;
+
+    const findSubject = await this.subjectsRepository.findByName(
+      subject.trim().toLowerCase(),
+    );
+
+    if (!findSubject) {
+      throw new NotFoundException({
+        message: 'Subject not found.',
+        success: false,
+        status: 404,
+      });
+    }
+
+    const getExamType = examType?.toLowerCase(); // normalize
+    const plan = EXAM_PLAN_MAP[examType];
+
+    if (!plan) {
+      this.logger.warn(`Unknown examType: ${examType}`);
+    }
+
+    const formattedQuestions = questions.map((q) => {
+      if (!q.question || !q.options || !q.answer) {
+        throw new BadRequestException({
+          message: `Invalid question format for ID: ${q.id}`,
+          success: false,
+          status: 400,
+        });
+      }
+
+      // console.log('q.options:', q.options);
+      return {
+        examYear: year,
+        examType: examType.toLowerCase(),
+        apiSubjectName: subject.toLowerCase(),
+        subject: findSubject._id,
+        section: section.toLowerCase(),
+        apiQuestionId: `${examType}-${year}-${q.id}`,
+        options: q.options,
+        answer: q.answer,
+        explanation: q.explanation,
+        question: q.question,
+        type,
+        plan,
+        difficulty: q.difficulty?.trim().toLowerCase() || 'medium',
+        topic: q.topic || null,
+      };
+    });
+
+    const response =
+      await this.questionsRepository.insertQuestions(formattedQuestions);
+
+    // console.log('response:', response);
+    return response;
   }
 }

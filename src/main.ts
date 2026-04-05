@@ -28,7 +28,7 @@ async function bootstrap() {
   serverAdapter.setBasePath('/admin/queues');
 
   const repo = app.get(QuestionsRepository);
-  // await repo.getQuestionsSummaryRaw();
+  // await repo.backfillPlans();
 
   // const repo = app.get(WalletsRepository);
   // await repo.createWallet('69b6e93307f1bf73531171cb');

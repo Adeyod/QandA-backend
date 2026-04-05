@@ -7,5 +7,5 @@ export class InjectQuestionsDto {
   })
   @IsNotEmpty({ message: 'Access User is required' })
   @IsString({ message: 'Access user must be a string' })
-  accessUser: string;
+  accessUser!: string;
 }
