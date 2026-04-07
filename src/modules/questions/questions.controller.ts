@@ -77,9 +77,9 @@ export class QuestionsController {
     'Question summary fetched successfully for this subject for the year.',
   )
   @ApiOperation({
-    summary:
+    summary: 'Get question summary for a given year',
+    description:
       'This gives response as to the number of questions we have for a given year for a subject',
-    description: 'Get question summary for a given year',
   })
   @ApiResponse({
     status: 200,
@@ -115,7 +115,7 @@ export class QuestionsController {
   @ApiOperation({
     summary: 'Fetching question summary',
     description:
-      'This is the endpoint for fetching summary of all the questions inside the database',
+      'This is the endpoint for fetching summary of all the questions inside the database. This endpoint is expecting accessToken from req.headers',
   })
   @ApiResponse({
     status: 200,
@@ -147,7 +147,7 @@ export class QuestionsController {
   @ApiOperation({
     summary: 'Fetching free past questions based on selected plan',
     description:
-      'This is the endpoint for fetching past questions based on the plan that the user selected.',
+      'This is the endpoint for fetching past questions of free years based on the plan that the user selected. This endpoint is expecting plan, subject, year, examType from req.query. It is also expecting accessToken from req.headers.',
   })
   @ApiResponse({
     status: 200,
@@ -174,7 +174,7 @@ export class QuestionsController {
   @ApiOperation({
     summary: 'Fetching free past questions based on selected plan',
     description:
-      'This is the endpoint for fetching past questions based on the plan that the user selected.',
+      'This is the endpoint for fetching past questions of paid years based on the plan that the user selected. This endpoint is expecting plan, subject, year, examType from req.query. It is also expecting accessToken from req.headers.',
   })
   @ApiResponse({
     status: 200,

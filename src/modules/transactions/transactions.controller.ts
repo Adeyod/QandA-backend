@@ -32,7 +32,7 @@ export class TransactionsController {
   @ApiOperation({
     summary: 'Get all transactions for a user',
     description:
-      'This is the endpoint for fetching all the transactions of a user by using the user ID',
+      'This is the endpoint for fetching all the transactions of a user by using the user ID. This endpoint can be accessed by the user that owns the account and also by the admin. This endpoint is expecting userId from req.params, page, limit and searchParams from req.query. It is also expecting accessToken from req.headers.',
   })
   @ApiResponse({
     status: 200,
@@ -75,7 +75,7 @@ export class TransactionsController {
   @ApiOperation({
     summary: 'Get all transactions on the app',
     description:
-      'This is the endpoint for fetching all the transactions on the app for admin use',
+      'This is the endpoint for fetching all the transactions on the app for admin use. This endpoint can be accessed by admin only. It is expecting accessToken from req.headers',
   })
   @ApiResponse({
     status: 200,
@@ -112,7 +112,8 @@ export class TransactionsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get a transaction on the app',
-    description: 'This is the endpoint for fetching a transaction on the app',
+    description:
+      'This is the endpoint for fetching a transaction on the app. This endpoint is expecting transactionId from req.params and it is also expecting accessToken from req.headers.',
   })
   @ApiResponse({
     status: 200,

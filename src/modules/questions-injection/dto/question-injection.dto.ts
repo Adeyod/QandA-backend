@@ -136,6 +136,11 @@ export class QuestionInjectionDto {
   @IsString({ message: 'Section is a string' })
   section!: ExamSection;
 
+  @ApiProperty({
+    description:
+      'This is the type that the questions belong to. it can be any of these: mcq, essay or theory',
+    example: 'mcq',
+  })
   @IsEnum(QuestionType)
   type!: QuestionType;
 

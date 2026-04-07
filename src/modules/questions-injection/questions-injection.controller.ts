@@ -39,7 +39,7 @@ export class QuestionsInjectionController {
   @ApiOperation({
     summary: 'This is the endpoint for adding questions into the database.',
     description:
-      'This is the endpoint for creating questions. This endpoint add past questions into the database.',
+      'This is the endpoint for creating questions. This endpoint add past questions into the database. This endpoint is expecting accessToken from req.headers. It is also expecting all the values from the DTO. This endpoint can only be accessed by admins.',
   })
   @ApiResponse({
     status: 201,

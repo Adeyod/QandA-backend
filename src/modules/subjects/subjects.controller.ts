@@ -40,7 +40,8 @@ export class SubjectsController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Subject creation',
-    description: 'Creates a new subject',
+    description:
+      'Creates a new subject. This is the endpoint that admin is going to use to create new subject. It is expecting accessToken from req.headers. it is also expecting DTO from req.body',
   })
   @ApiResponse({
     status: 201,
@@ -67,7 +68,9 @@ export class SubjectsController {
   @SuccessMessage('Subjects fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Get all subjects with optional page, searchParams or limit',
+    summary: 'This is for getting all subjects on the app.',
+    description:
+      'Get all subjects with optional page, searchParams or limit, It is expecting page, limit and searchParams from req.query.',
   })
   @ApiResponse({
     status: 200,
@@ -102,7 +105,8 @@ export class SubjectsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Subject fetched successfully.',
-    description: 'This is to fetch single subject using subjectId',
+    description:
+      'This is to fetch single subject using subjectId. It is expecting the subject ID from req.params',
   })
   @ApiResponse({
     status: 200,

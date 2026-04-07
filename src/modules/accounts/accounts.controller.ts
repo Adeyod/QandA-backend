@@ -35,7 +35,7 @@ export class AccountsController {
   @ApiOperation({
     summary: 'Adding user bank account.',
     description:
-      'This is the endpoint for user to add his or her account details',
+      'This is the endpoint for user to add his or her account details. This endpoint is expecting accessToken from req.headers and also the DTO',
   })
   @ApiResponse({
     status: 201,
@@ -66,7 +66,7 @@ export class AccountsController {
   @ApiOperation({
     summary: 'Fetches user account.',
     description:
-      'This is the endpoint for fetching user account. This can be used by the user that has the account or admin.',
+      'This is the endpoint for fetching user account. This can be used by the user that has the account or admin. It is expecting userId from req.params.',
   })
   @ApiResponse({
     status: 200,
@@ -95,7 +95,8 @@ export class AccountsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get all accounts on the app.',
-    description: 'This is the endpoint for fetching all accounts on the app.',
+    description:
+      'This is the endpoint for fetching all accounts on the app. This endpoint is expecting accessToken from req.headers, page, limit and searchParams from req.query and it can only be used by admin.',
   })
   @ApiResponse({
     status: 200,

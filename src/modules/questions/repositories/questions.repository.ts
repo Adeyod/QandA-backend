@@ -445,6 +445,62 @@ export class QuestionsRepository {
     }
   }
 
+  async normalizeOptionsToLowerCase() {
+    try {
+      const affectedYears = [
+        '2000',
+        '2001',
+        '2002',
+        '2003',
+        '2004',
+        '2005',
+        '2006',
+      ];
+
+      // Fetch only questions in affectedYears with examType 'waec'
+      const questions = await this.questionModel.find(
+        {
+          examType: 'waec',
+          examYear: { $in: affectedYears },
+        },
+        { options: 1, answer: 1 },
+      ); // only fetch needed fields
+
+      for (const q of questions) {
+        if (!q.options) continue; // skip if options is undefined
+
+        let needsUpdate = false;
+
+        // Convert options to lowercase keys & values
+        const optionsObj = Object.fromEntries(
+          Object.entries(q.options).map(([key, value]) => {
+            const newKey = key.toLowerCase();
+            const newValue = value.toLowerCase();
+            if (newKey !== key || newValue !== value) needsUpdate = true;
+            return [newKey, newValue];
+          }),
+        );
+
+        // Lowercase answer if it exists
+        const lowercasedAnswer = q.answer ? q.answer.toLowerCase() : q.answer;
+        if (q.answer && lowercasedAnswer !== q.answer) needsUpdate = true;
+
+        if (needsUpdate) {
+          const updated = await this.questionModel.updateOne(
+            { _id: q._id },
+            { options: optionsObj, answer: lowercasedAnswer },
+          );
+
+          console.log('updated:', updated);
+        }
+      }
+
+      console.log('Normalization complete for affected years!');
+    } catch (error) {
+      console.error('Error normalizing questions:', error);
+    }
+  }
+
   // async getQuestionsByExamYear() {
   //   const EXAM_TYPES = [
   //     'utme',

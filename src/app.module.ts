@@ -92,11 +92,6 @@ import { WalletsModule } from './modules/wallets/wallets.module';
       useFactory: (configService: ConfigService) => {
         const redisUrl = configService.get<string>('REDIS_URL');
 
-        console.log('Redis URL:', redisUrl || 'NOT SET');
-
-        console.log('All ENV:', process.env);
-
-        // ✅ Production (Render)
         if (redisUrl) {
           const redisArray = redisUrl.split(':');
 
@@ -110,8 +105,6 @@ import { WalletsModule } from './modules/wallets/wallets.module';
           };
         }
 
-        // ✅ Development (local)
-        console.log('Using localhost Redis (development)');
         return {
           redis: {
             host: '127.0.0.1',

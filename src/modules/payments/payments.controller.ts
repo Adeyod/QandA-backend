@@ -79,7 +79,7 @@ export class PaymentsController {
   @ApiOperation({
     summary: 'Get all payments for a user.',
     description:
-      'This is the endpoint for fetching all the payments of a user.',
+      'This is the endpoint for fetching all the payments of a user. This endpoint is expecting accessToken from req.headers and it is also expecting userId from req.params. This endpoint can be accessed by the payment owner as well as the admin.',
   })
   @ApiResponse({
     status: 200,
@@ -114,7 +114,7 @@ export class PaymentsController {
   @ApiOperation({
     summary: 'Get all payments on the app.',
     description:
-      'This is the endpoint for fetching all the paymentson the application.',
+      'This is the endpoint for fetching all the paymentson the application. This endpoint is expecting accessToken from req.params and it can only be used by admin only.',
   })
   @ApiResponse({
     status: 200,

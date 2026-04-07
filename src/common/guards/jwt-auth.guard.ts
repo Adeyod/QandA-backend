@@ -26,18 +26,43 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any, info: any) {
-    // console.log('JwtAuth info:', info);
-    // console.log('JwtAuth user:', user);
+    console.log('JwtAuth info:', info);
+    console.log('JwtAuth user:', user);
     if (err || !user) {
       console.log('JwtAuth err:', err);
-      throw (
-        err ||
-        new UnauthorizedException({
-          message: 'Unauthorized',
-          status: 401,
+
+      if (info?.name === 'TokenExpiredError') {
+        throw new UnauthorizedException({
+          message: 'Token has expired.',
           success: false,
-        })
-      );
+          status: 401,
+          error: 'TOKEN_EXPIRED',
+        });
+      }
+
+      if (info?.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException({
+          message: 'Invalid token',
+          success: false,
+          status: 401,
+          error: 'INVALID_TOKEN',
+        });
+      }
+
+      if (info?.name === 'NotBeforeError') {
+        throw new UnauthorizedException({
+          message: 'Token not active yet.',
+          success: false,
+          status: 401,
+          error: 'TOKEN_NOT_ACTIVE',
+        });
+      }
+      throw new UnauthorizedException({
+        message: 'Unauthorized',
+        status: 401,
+        success: false,
+        error: 'AUTH_FAILED',
+      });
     }
 
     return user;

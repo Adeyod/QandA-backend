@@ -255,16 +255,22 @@ export class QuestionsInjectionService {
         });
       }
 
-      // console.log('q.options:', q.options);
+      const lowercasedOptions = Object.fromEntries(
+        Object.entries(q.options).map(([key, value]) => [
+          key.toLowerCase(),
+          value.toLowerCase(),
+        ]),
+      );
+
       return {
         examYear: year,
         examType: examType.toLowerCase(),
         apiSubjectName: subject.toLowerCase(),
         subject: findSubject._id,
         section: section.toLowerCase(),
-        apiQuestionId: `${examType}-${year}-${q.id}`,
-        options: q.options,
-        answer: q.answer,
+        apiQuestionId: `${examType}-${q.id}`,
+        options: lowercasedOptions,
+        answer: q.answer.toLowerCase(),
         explanation: q.explanation,
         question: q.question,
         type,
