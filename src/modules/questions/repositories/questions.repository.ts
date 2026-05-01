@@ -553,6 +553,19 @@ export class QuestionsRepository {
     return examYears;
   }
 
+  async changeExamYearByExamIds(examIds: string[]) {
+    for (const id of examIds) {
+      const exam = await this.questionModel.findOneAndUpdate(
+        {
+          apiQuestionId: id,
+        },
+        {
+          examYear: '2008',
+        },
+      );
+    }
+  }
+
   async flattenOptions() {
     // Step 1: Fetch all questions where options is an array with exactly 1 element
     const questions = await this.questionModel.find({
