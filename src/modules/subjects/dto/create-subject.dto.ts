@@ -8,5 +8,5 @@ export class CreateSubjectDto {
   })
   @IsNotEmpty({ message: 'Subject name is required' })
   @IsString({ message: 'Subject name is a string' })
-  name: string;
+  name!: string;
 }

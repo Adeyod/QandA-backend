@@ -7,29 +7,29 @@ export class TransactionResponseDto {
     description: 'ID of the JSON object.',
     example: '2039wj4r5j39wj58fh5i',
   })
-  _id: Types.ObjectId;
+  _id!: Types.ObjectId;
 
   @ApiProperty({
     description: 'Wallet ID that the transaction belongs to.',
     example: '2039wj4r5j39wj58fh5i',
   })
-  walletId: Types.ObjectId;
+  walletId!: Types.ObjectId;
 
   @ApiProperty({
     description: 'The amount transacted',
     example: 50,
   })
-  amount: number;
+  amount!: number;
 
   @ApiProperty({
     description: 'The type of transaction done.',
     example: TransactionType.CREDIT,
   })
-  type: TransactionType;
+  type!: TransactionType;
 
   @ApiProperty({
     description: 'What the transaction is meant for.',
     example: 'Referral bonus',
   })
-  description: string;
+  description!: string;
 }

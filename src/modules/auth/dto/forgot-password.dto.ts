@@ -9,5 +9,5 @@ export class ForgotPasswordDto {
   @IsNotEmpty({ message: 'Email is required' })
   @IsEmail()
   @IsString({ message: 'Email must be string' })
-  email: string;
+  email!: string;
 }

@@ -8,7 +8,7 @@ export class WalletDebitDto {
   })
   @IsNotEmpty({ message: 'Wallet ID is required' })
   @IsString({ message: 'Wallet ID must be a string' })
-  walletId: string;
+  walletId!: string;
 
   @ApiProperty({
     description:
@@ -17,7 +17,7 @@ export class WalletDebitDto {
   })
   @IsNotEmpty({ message: 'Amount is required' })
   @IsNumber()
-  amount: number;
+  amount!: number;
 
   @ApiProperty({
     description: 'This is the narration of what the amount is meant for',
@@ -25,5 +25,5 @@ export class WalletDebitDto {
   })
   @IsNotEmpty({ message: 'Description is required' })
   @IsString({ message: 'Description must be a string' })
-  description: string;
+  description!: string;
 }

@@ -16,7 +16,7 @@ export class LoginDto {
   @IsNotEmpty({ message: 'Email is required' })
   @IsEmail()
   @IsString({ message: 'Email must be string' })
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: 'User password',
@@ -32,5 +32,5 @@ export class LoginDto {
     message:
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
-  password: string;
+  password!: string;
 }

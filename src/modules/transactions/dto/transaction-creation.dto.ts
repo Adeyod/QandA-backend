@@ -9,7 +9,7 @@ export class TransactionCreationDto {
   })
   @IsNotEmpty({ message: 'Wallet ID is required' })
   @IsString({ message: 'Wallet ID must be a string' })
-  walletId: string;
+  walletId!: string;
 
   @ApiProperty({
     description:
@@ -18,7 +18,7 @@ export class TransactionCreationDto {
   })
   @IsNotEmpty({ message: 'Amount is required' })
   @IsNumber()
-  amount: number;
+  amount!: number;
 
   @ApiProperty({
     description: 'This is the narration of what the amount is meant for',
@@ -26,7 +26,7 @@ export class TransactionCreationDto {
   })
   @IsNotEmpty({ message: 'Description is required' })
   @IsString({ message: 'Description must be a string' })
-  description: string;
+  description!: string;
 
   @ApiProperty({
     description: 'This is the transaction type for this particular transaction',
@@ -34,5 +34,5 @@ export class TransactionCreationDto {
   })
   @IsNotEmpty({ message: 'Transaction type is required' })
   @IsEnum(TransactionType)
-  transactionType: TransactionType;
+  transactionType!: TransactionType;
 }

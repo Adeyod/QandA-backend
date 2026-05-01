@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 
 export class RequestWithUser extends Request {
-  user: {
+  user!: {
     _id: Types.ObjectId;
     email: string;
     role: string;

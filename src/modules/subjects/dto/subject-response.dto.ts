@@ -6,11 +6,11 @@ export class SubjectResponseDto {
     description: 'Subject ID',
     example: 'ei3392ue8394jf9550dj49fj',
   })
-  _id: Types.ObjectId;
+  _id!: Types.ObjectId;
 
   @ApiProperty({
     description: 'Subject Name',
     example: 'Chemistry',
   })
-  name: string;
+  name!: string;
 }

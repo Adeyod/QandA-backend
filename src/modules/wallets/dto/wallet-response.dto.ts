@@ -6,17 +6,17 @@ export class WalletResponseDto {
     description: 'wallet ID',
     example: '2039difur849e0403e940e9',
   })
-  _id: Types.ObjectId;
+  _id!: Types.ObjectId;
 
   @ApiProperty({
     description: 'user ID',
     example: '2039difur849e0403e940e9',
   })
-  userId: Types.ObjectId;
+  userId!: Types.ObjectId;
 
   @ApiProperty({
     description: 'Balance of the wallet',
     example: 50,
   })
-  balance: number;
+  balance!: number;
 }
