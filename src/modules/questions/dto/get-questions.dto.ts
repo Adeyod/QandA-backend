@@ -11,11 +11,11 @@ export class GetQuestionsDto {
   plan!: Plan;
 
   @ApiProperty({
-    description: 'This is the subject name',
-    example: 'chemistry',
+    description: 'This is the subject ID',
+    example: '69be2b82206c0f7de64f089d',
   })
-  @IsString({ message: 'Subject must be a string' })
-  subject!: string;
+  @IsString({ message: 'Subject ID' })
+  subjectId!: string;
 
   @ApiProperty({
     description: 'This is the selected year',

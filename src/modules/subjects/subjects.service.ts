@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { Plan } from '../users/schemas/user.schema';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { SubjectsRepository } from './repositories/subjects.repository';
 
@@ -17,15 +18,24 @@ export class SubjectsService {
     );
 
     if (subjectExist) {
-      throw new BadRequestException({
-        message: 'Subject already exist.',
-        status: 400,
-        success: false,
-      });
+      if (subjectExist.plans.includes(createSubjectDto?.plan)) {
+        throw new BadRequestException({
+          message: 'Subject already exist.',
+          status: 400,
+          success: false,
+        });
+      } else {
+        const subject = await this.subjectsRepository.addMorePlanToSubject(
+          createSubjectDto?.plan,
+          subjectExist?._id,
+        );
+        return subject;
+      }
     }
 
     const newSubject = await this.subjectsRepository.create(
       createSubjectDto.name.trim().toLowerCase(),
+      createSubjectDto.plan,
     );
 
     if (!newSubject) {
@@ -41,6 +51,22 @@ export class SubjectsService {
 
   async getAllSubjects(queryWithPaginationDto: QueryWithPaginationDto) {
     return this.subjectsRepository.findAll(queryWithPaginationDto);
+  }
+  async getAllSubjectsPerCategory(
+    plan: Plan,
+    queryWithPaginationDto: QueryWithPaginationDto,
+  ) {
+    if (!plan) {
+      throw new BadRequestException({
+        message: 'Category (Plan) is required',
+        success: false,
+        status: 400,
+      });
+    }
+    return this.subjectsRepository.getAllSubjectsPerCategory(
+      plan,
+      queryWithPaginationDto,
+    );
   }
 
   async getSubjectById(subjectId: string) {

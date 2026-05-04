@@ -22,7 +22,7 @@ import { ApiResponseDto } from '../../common/dto/api-response.dto';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Role } from '../users/schemas/user.schema';
+import { Plan, Role } from '../users/schemas/user.schema';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { SubjectResponseDto } from './dto/subject-response.dto';
 import { SubjectsService } from './subjects.service';
@@ -65,12 +65,15 @@ export class SubjectsController {
   }
 
   @Get('get-all-subjects')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Subjects fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'This is for getting all subjects on the app.',
     description:
-      'Get all subjects with optional page, searchParams or limit, It is expecting page, limit and searchParams from req.query.',
+      'Get all subjects with optional page, searchParams or limit, It is expecting page, limit and searchParams from req.query. This endpoint can only be accessed by admin.',
   })
   @ApiResponse({
     status: 200,
@@ -98,6 +101,52 @@ export class SubjectsController {
     @Query() queryWithPaginationDto: QueryWithPaginationDto,
   ) {
     return await this.subjectsService.getAllSubjects(queryWithPaginationDto);
+  }
+  @Get('get-all-subjects-per-category/:plan')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.USER)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage(
+    'Subjects For the selected category(Plan) fetched successfully.',
+  )
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'This is for getting all subjects based on the selected category(Plan).',
+    description:
+      'Get all subjects with optional page, searchParams or limit, It is expecting page, limit and searchParams from req.query. This endpoint can be accessed by admin and user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Lists of all subjects based on selected category(Plan) with pagination',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: getSchemaPath(SubjectResponseDto) },
+        },
+
+        meta: {
+          type: 'object',
+          properties: {
+            totalPages: { type: 'number' },
+            totalCount: { type: 'number' },
+            limit: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  async getAllSubjectsPerCategory(
+    @Param('plan') plan: Plan,
+    @Query() queryWithPaginationDto: QueryWithPaginationDto,
+  ) {
+    return await this.subjectsService.getAllSubjectsPerCategory(
+      plan,
+      queryWithPaginationDto,
+    );
   }
 
   @Get(':subjectId')

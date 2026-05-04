@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Types } from 'mongoose';
+import { Plan } from '../../users/schemas/user.schema';
 
 export class SubjectResponseDto {
   @ApiProperty({
@@ -13,4 +14,10 @@ export class SubjectResponseDto {
     example: 'Chemistry',
   })
   name!: string;
+
+  @ApiProperty({
+    description: 'Plan that the subject belong to',
+    example: [Plan.SECONDARY, Plan.TERTIARY],
+  })
+  plans!: [string];
 }

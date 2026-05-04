@@ -46,20 +46,22 @@ export class QuestionsService {
   }
 
   async getFreeQuestionsPerPlan(getQuestionsDto: GetQuestionsDto) {
-    const { plan, year, subject, examType } = getQuestionsDto;
+    const { plan, year, subjectId, examType } = getQuestionsDto;
 
     const freeYears = ['2000', '2001'];
+    const freeSubjects = ['mathematics', 'english'];
+
     if (!freeYears.includes(getQuestionsDto.year)) {
       throw new ForbiddenException({
-        message: 'This is not allowed.',
+        message: `You need to subscribe to view ${getQuestionsDto.year} questions.`,
         status: 403,
         success: false,
       });
     }
 
-    const getSubject = await this.subjectsRepository.findByName(
-      subject.trim().toLowerCase(),
-    );
+    const subject = new Types.ObjectId(subjectId);
+
+    const getSubject = await this.subjectsRepository.findById(subject);
 
     if (!getSubject) {
       throw new NotFoundException({
@@ -69,20 +71,29 @@ export class QuestionsService {
       });
     }
 
+    if (!freeSubjects.includes(getSubject.name.toLowerCase())) {
+      throw new ForbiddenException({
+        message: `${getSubject.name} is not included in free plan. Please subscribe to ${plan} plan to proceed.`,
+        success: false,
+        status: 403,
+      });
+    }
+
     const input = {
       plan,
       year,
-      subject: getSubject._id.toString(),
+      subjectId: getSubject._id.toString(),
       examType,
     };
     return await this.questionsRepository.getFreeQuestions(input);
   }
 
   async getPaidQuestionsPerPlan(getQuestionsDto: GetQuestionsDto) {
-    const { plan, year, subject, examType } = getQuestionsDto;
-    const getSubject = await this.subjectsRepository.findByName(
-      subject.trim().toLowerCase(),
-    );
+    const { plan, year, subjectId, examType } = getQuestionsDto;
+
+    const subject = new Types.ObjectId(subjectId);
+
+    const getSubject = await this.subjectsRepository.findById(subject);
 
     if (!getSubject) {
       throw new NotFoundException({
@@ -95,7 +106,7 @@ export class QuestionsService {
     const input = {
       plan,
       year,
-      subject: getSubject._id.toString(),
+      subjectId: getSubject._id.toString(),
       examType,
     };
     const questions = await this.questionsRepository.getPaidQuestions(input);
