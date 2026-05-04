@@ -37,7 +37,8 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Register a user',
-    description: 'Creates a new user. This is the endpoint for user creation.',
+    description:
+      'Creates a new user. This is the endpoint for user creation. All type of roles can use this endpoint.',
   })
   @ApiResponse({
     status: 201,
@@ -70,7 +71,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Verify email address',
     description:
-      'Verify user email address using token. This is the endpoint for verifying user email. It is expecting token from req.param.',
+      'Verify user email address using token. This is the endpoint for verifying user email. It is expecting token from req.param. All type of roles can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -94,7 +95,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Login user',
-    description: 'User login using email and password.',
+    description:
+      'User login using email and password. All type of roles can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -121,7 +123,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Forgot password',
     description:
-      'Get token in your email to reset your password. This endpoint is expecting email address from req.body',
+      'Get token in your email to reset your password. This endpoint is expecting email address from req.body. All type of roles can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -147,7 +149,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Request for another access token',
-    description: 'Get another access token',
+    description:
+      'Get another access token. All type of roles can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -174,7 +177,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Request for another token to verify email',
     description:
-      'Get another token to verify your email. This endpoint is expecting email from req.body',
+      'Get another token to verify your email. This endpoint is expecting email from req.body. All type of roles can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -204,7 +207,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Change user password',
     description:
-      'Change user password. This endpoint is expecting token, password and confirmPassword from req.body',
+      'Change user password. This endpoint is expecting token, password and confirmPassword from req.body. All type of roles can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -228,7 +231,7 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
     name: 'x-refresh-token',
-    description: 'Refresh token',
+    description: 'Refresh token. All type of roles can use this endpoint.',
     required: true,
   })
   @SuccessMessage('User logged out successfully')

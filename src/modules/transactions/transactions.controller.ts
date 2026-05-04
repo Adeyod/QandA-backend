@@ -113,7 +113,7 @@ export class TransactionsController {
   @ApiOperation({
     summary: 'Get a transaction on the app',
     description:
-      'This is the endpoint for fetching a transaction on the app. This endpoint is expecting transactionId from req.params and it is also expecting accessToken from req.headers.',
+      'This is the endpoint for fetching a transaction on the app. This endpoint can be accessed by the user that owns the transaction as well as admin. This endpoint is expecting transactionId from req.params and it is also expecting accessToken from req.headers.',
   })
   @ApiResponse({
     status: 200,

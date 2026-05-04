@@ -29,7 +29,7 @@ export class QuestionsController {
   @ApiOperation({
     summary: 'This is the endpoint for fetching a question by the questionId',
     description:
-      'This endpoint respond with a particular question which its ID is passed as a param',
+      'This endpoint respond with a particular question which its ID is passed as a param. There is no role restriction yet on the endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -49,10 +49,14 @@ export class QuestionsController {
   }
 
   @Get('count-questions-by-subjectId/:subjectId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.USER)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary:
       'This gives response as to the number of questions we have for a subject',
-    description: 'Get question summary for a given subject',
+    description:
+      'Get question summary for a given subject. Admin and user can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -73,13 +77,16 @@ export class QuestionsController {
   }
 
   @Get('count-questions-by-subjectId-and-year/:subjectId/:year')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.USER)
+  @ApiBearerAuth('JWT-auth')
   @SuccessMessage(
     'Question summary fetched successfully for this subject for the year.',
   )
   @ApiOperation({
     summary: 'Get question summary for a given year',
     description:
-      'This gives response as to the number of questions we have for a given year for a subject',
+      'This gives response as to the number of questions we have for a given year for a subject. Admin and user can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -115,7 +122,7 @@ export class QuestionsController {
   @ApiOperation({
     summary: 'Fetching question summary',
     description:
-      'This is the endpoint for fetching summary of all the questions inside the database. This endpoint is expecting accessToken from req.headers',
+      'This is the endpoint for fetching summary of all the questions inside the database. This endpoint is expecting accessToken from req.headers. This endpoint is admin.',
   })
   @ApiResponse({
     status: 200,
@@ -147,7 +154,7 @@ export class QuestionsController {
   @ApiOperation({
     summary: 'Fetching free past questions based on selected plan',
     description:
-      'This is the endpoint for fetching past questions of free years based on the plan that the user selected. This endpoint is expecting plan, subject, year, examType from req.query. It is also expecting accessToken from req.headers.',
+      'This is the endpoint for fetching past questions of free years based on the plan that the user selected. This endpoint is expecting plan, subject, year, examType from req.query. It is also expecting accessToken from req.headers. Admin and user can use this endpoint.',
   })
   @ApiResponse({
     status: 200,
@@ -174,7 +181,7 @@ export class QuestionsController {
   @ApiOperation({
     summary: 'Fetching free past questions based on selected plan',
     description:
-      'This is the endpoint for fetching past questions of paid years based on the plan that the user selected. This endpoint is expecting plan, subject, year, examType from req.query. It is also expecting accessToken from req.headers.',
+      'This is the endpoint for fetching past questions of paid years based on the plan that the user selected. This endpoint is expecting plan, subject, year, examType from req.query. It is also expecting accessToken from req.headers. Admin and user can use this endpoint.',
   })
   @ApiResponse({
     status: 200,

@@ -35,7 +35,7 @@ export class PaymentsController {
   @ApiOperation({
     summary: 'User creates payment intent',
     description:
-      'This is the endpoint to be called when user clicks on button to make payment. This endpoint returns with payment processor URL for user to make the payment.',
+      'This is the endpoint to be called when user clicks on button to make payment. This endpoint returns with payment processor URL for user to make the payment. This endpoint can only be accessed by user.',
   })
   @ApiResponse({
     status: 201,
@@ -114,7 +114,7 @@ export class PaymentsController {
   @ApiOperation({
     summary: 'Get all payments on the app.',
     description:
-      'This is the endpoint for fetching all the paymentson the application. This endpoint is expecting accessToken from req.params and it can only be used by admin only.',
+      'This is the endpoint for fetching all the payments on the application. This endpoint is expecting accessToken from req.params and it can only be used by admin only.',
   })
   @ApiResponse({
     status: 200,

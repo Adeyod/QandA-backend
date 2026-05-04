@@ -35,7 +35,7 @@ export class AccountsController {
   @ApiOperation({
     summary: 'Adding user bank account.',
     description:
-      'This is the endpoint for user to add his or her account details. This endpoint is expecting accessToken from req.headers and also the DTO',
+      'This is the endpoint for user to add his or her account details. This endpoint is expecting accessToken from req.headers and also the DTO. This endpoint is for only users.',
   })
   @ApiResponse({
     status: 201,

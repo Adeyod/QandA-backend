@@ -41,7 +41,7 @@ export class SubjectsController {
   @ApiOperation({
     summary: 'Subject creation',
     description:
-      'Creates a new subject. This is the endpoint that admin is going to use to create new subject. It is expecting accessToken from req.headers. it is also expecting DTO from req.body',
+      'Creates a new subject. This is the endpoint that admin is going to use to create new subject. It is expecting accessToken from req.headers. it is also expecting DTO from req.body. Only admin can access this endpoint.',
   })
   @ApiResponse({
     status: 201,
