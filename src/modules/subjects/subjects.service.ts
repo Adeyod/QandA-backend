@@ -11,7 +11,10 @@ import { SubjectsRepository } from './repositories/subjects.repository';
 
 @Injectable()
 export class SubjectsService {
-  constructor(private subjectsRepository: SubjectsRepository) {}
+  constructor(
+    private subjectsRepository: SubjectsRepository,
+    // private questionsRepository: QuestionsRepository,
+  ) {}
   async createSubject(createSubjectDto: CreateSubjectDto) {
     const subjectExist = await this.subjectsRepository.findByName(
       createSubjectDto.name.toLowerCase(),
@@ -83,4 +86,20 @@ export class SubjectsService {
 
     return subject;
   }
+
+  // async getAvailableYearsAndExamTypesBySubjectId(subjectId: string) {
+  //   const id = new Types.ObjectId(subjectId)
+
+  //   const res = await this.questionsRepository.getAvailableYearsAndExamTypesBySubjectId(id)
+
+  //   if(!res) {
+  //      throw new NotFoundException({
+  //       message: 'Subject details not found.',
+  //       success: false,
+  //       status: 404,
+  //     });
+  //   }
+
+  //   return res
+  // }
 }

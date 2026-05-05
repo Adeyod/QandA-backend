@@ -60,13 +60,13 @@ export class SubjectsRepository {
 
     const subjects = await query.sort({ createdAt: -1 });
 
-    if (subjects.length === 0) {
-      throw new NotFoundException({
-        message: 'Subjects not found',
-        success: false,
-        status: 404,
-      });
-    }
+    // if (subjects.length === 0) {
+    //   throw new NotFoundException({
+    //     message: 'Subjects not found',
+    //     success: false,
+    //     status: 404,
+    //   });
+    // }
 
     const response = {
       subjectObj: subjects,

@@ -278,14 +278,15 @@ export class QuestionsRepository {
   async getFreeQuestions(
     getQuestionsDto: GetQuestionsDto,
   ): Promise<QuestionDocument[]> {
-    const { plan, subjectId, year } = getQuestionsDto;
+    const { plan, subjectId, year, examType } = getQuestionsDto;
 
     const subject = new Types.ObjectId(subjectId);
 
     const questions = await this.questionModel
       .find({
-        // plan,
+        plan,
         examYear: year,
+        examType,
         subject,
       })
       .lean();
@@ -296,7 +297,7 @@ export class QuestionsRepository {
   async getPaidQuestions(
     getQuestionsDto: GetQuestionsDto,
   ): Promise<QuestionDocument[]> {
-    const { plan, subjectId, year } = getQuestionsDto;
+    const { plan, subjectId, year, examType } = getQuestionsDto;
     const subject = new Types.ObjectId(subjectId);
 
     const questions = await this.questionModel
@@ -304,6 +305,7 @@ export class QuestionsRepository {
         plan,
         examYear: year,
         subject,
+        examType,
       })
       .lean();
 

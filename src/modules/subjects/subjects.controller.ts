@@ -181,4 +181,12 @@ export class SubjectsController {
   async getSubjectById(@Param('subjectId') subjectId: string) {
     return await this.subjectsService.getSubjectById(subjectId);
   }
+
+  // async getAvailableYearsAndExamTypesBySubjectId(
+  //   @Param('subjectId') subjectId: string,
+  // ) {
+  //   return await this.subjectsService.getAvailableYearsAndExamTypesBySubjectId(
+  //     subjectId,
+  //   );
+  // }
 }
