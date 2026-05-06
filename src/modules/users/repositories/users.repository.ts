@@ -156,7 +156,7 @@ export class UsersRepository {
       }
     }
 
-    const users = await query.sort({ createdAt: -1 });
+    const users = await query.sort({ createdAt: -1 }).select('-password');
 
     if (users.length === 0) {
       throw new NotFoundException({

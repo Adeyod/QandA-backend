@@ -4,12 +4,15 @@ import { Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { TransactionCreationDto } from '../dto/transaction-creation.dto';
 import { TransactionResponseDto } from '../dto/transaction-response.dto';
-import { TransactionDocument } from '../schemas/transaction.schema';
+import {
+  Transaction,
+  TransactionDocument,
+} from '../schemas/transaction.schema';
 
 @Injectable()
 export class TransactionsRepository {
   constructor(
-    @InjectModel('Transaction')
+    @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
   ) {}
 
@@ -101,6 +104,7 @@ export class TransactionsRepository {
     totalPages: number;
     totalCount: number;
   }> {
+    console.log('queryWithPaginationDto:', queryWithPaginationDto);
     const { page, limit, searchParams } = queryWithPaginationDto;
 
     let query = this.transactionModel.find();

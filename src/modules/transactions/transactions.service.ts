@@ -17,11 +17,13 @@ import { TransactionsRepository } from './repositories/transaction.repository';
 @Injectable()
 export class TransactionsService {
   constructor(
-    @Inject(forwardRef(() => WalletsRepository))
     private transactionsRepository: TransactionsRepository,
     private usersRepository: UsersRepository,
+    @Inject(forwardRef(() => WalletsRepository))
     private walletsRepository: WalletsRepository,
-  ) {}
+  ) {
+    console.log('transactionsRepository', this.transactionsRepository);
+  }
 
   async getTransactionById(
     transactionId: string,
