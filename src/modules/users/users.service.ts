@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsersRepository } from './repositories/users.repository';
 
@@ -103,5 +104,12 @@ export class UsersService {
 
     const { password, ...others } = user;
     return others;
+  }
+
+  async getAllUsers(queryWithPaginationDto: QueryWithPaginationDto) {
+    const response = await this.usersRepository.findAllWithPagination(
+      queryWithPaginationDto,
+    );
+    return response;
   }
 }

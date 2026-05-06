@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { generateRefCode } from '../../../common/utils/helper';
-import { User, UserDocument } from '../schemas/user.schema';
+import { Role, User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
 export class UsersRepository {
@@ -110,5 +111,66 @@ export class UsersRepository {
 
     console.log('referrals:', referrals);
     return referrals;
+  }
+
+  async findAllWithPagination(
+    queryWithPaginationDto: QueryWithPaginationDto,
+  ): Promise<{
+    userObj: UserDocument[];
+    totalPages: number;
+    totalCount: number;
+  }> {
+    const { page, searchParams, limit } = queryWithPaginationDto;
+
+    let query = this.userModel.find({ role: Role.USER });
+
+    if (searchParams) {
+      const regex = new RegExp(searchParams, 'i');
+
+      query = query.where({
+        $or: [
+          { firstName: { $regex: regex } },
+          { lastName: { $regex: regex } },
+          { email: { $regex: regex } },
+          { referralCode: { $regex: regex } },
+        ],
+      });
+    }
+
+    const count = await query.clone().countDocuments();
+    let pages = 0;
+
+    if (page !== undefined && limit !== undefined && count !== 0) {
+      const offset = (page - 1) * limit;
+
+      query = query.skip(offset).limit(limit);
+
+      pages = Math.ceil(count / limit);
+
+      if (page > pages) {
+        throw new NotFoundException({
+          message: 'Page can not be found.',
+          status: 404,
+          success: false,
+        });
+      }
+    }
+
+    const users = await query.sort({ createdAt: -1 });
+
+    if (users.length === 0) {
+      throw new NotFoundException({
+        message: 'Users not found',
+        success: false,
+        status: 404,
+      });
+    }
+
+    const response = {
+      userObj: users,
+      totalPages: pages,
+      totalCount: count,
+    };
+    return response;
   }
 }

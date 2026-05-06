@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -12,6 +13,7 @@ import { GetCurrentUser } from '../../common/decorators/get-current-user.decorat
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
+import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
@@ -23,7 +25,8 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get('/me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('User details fetched successfully.')
   @HttpCode(HttpStatus.OK)
@@ -61,7 +64,8 @@ export class UsersController {
   @SuccessMessage('User details fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'This is for fetching the details of a user.',
+    summary:
+      'This is for fetching the details of a user. This endpoint is mainly for admin',
     description:
       'This endpoint is for getting the details of a user. This endpoint can be admin to get details of a user.',
   })
@@ -87,5 +91,37 @@ export class UsersController {
     const userDetails = await this.usersService.findUserById(id);
     console.log('userDetails:', userDetails);
     return userDetails;
+  }
+
+  @Get('get-all-users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('Users fetched successfully.')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get all users on the app.',
+    description:
+      'This is the endpoint that admin will use to fetch all users on the application.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Users fetched successfully.',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request. Unable to get users.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Users not found.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error.',
+  })
+  async getAllUsers(@Query() queryWithPaginationDto: QueryWithPaginationDto) {
+    return await this.usersService.getAllUsers(queryWithPaginationDto);
   }
 }
