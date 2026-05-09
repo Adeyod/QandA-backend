@@ -33,7 +33,7 @@ export class TransactionsRepository {
 
   async getTransactionById(
     transactionId: string,
-  ): Promise<TransactionResponseDto | null> {
+  ): Promise<TransactionDocument | null> {
     const id = new Types.ObjectId(transactionId);
 
     const transaction = await this.transactionModel.findById(id);

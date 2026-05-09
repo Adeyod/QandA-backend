@@ -229,4 +229,14 @@ export class PaymentsRepository {
 
     return response;
   }
+
+  async findPaymentTransactionByReference(
+    reference: string,
+  ): Promise<PaymentDocument | null> {
+    const paymentTransaction = await this.paymentModel.findOne({
+      providerReference: reference,
+    });
+
+    return paymentTransaction;
+  }
 }

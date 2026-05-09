@@ -138,4 +138,35 @@ export class PaymentsController {
   ) {
     return this.paymentsService.getAllPayments(queryWithPaginationDto);
   }
+
+  @Get('verify-payment/:provider/:reference')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('Payment status fetched successfully.')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verify payment status',
+    description:
+      'Frontend calls this endpoint to confirm if a payment was successful using the payment reference.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment status fetched successfully.',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Payment not found.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async verifyPayment(
+    @Param('provider') provider: PaymentProvider,
+    @Param('reference') reference: string,
+    @GetCurrentUser() user: JwtUser,
+  ) {
+    return await this.paymentsService.verifyPayment(provider, reference, user);
+  }
 }
