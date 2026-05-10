@@ -55,8 +55,6 @@ export class PaymentsController {
     @Param('plan') plan: Plan,
     @GetCurrentUser() user: JwtUser,
   ) {
-    console.log('user._id:', user.sub);
-    console.log('user:', user);
     return await this.paymentsService.createPaymentIntent(provider, plan, user);
   }
 
@@ -139,7 +137,7 @@ export class PaymentsController {
     return this.paymentsService.getAllPayments(queryWithPaginationDto);
   }
 
-  @Get('verify-payment/:provider/:reference')
+  @Get('verify-payment/:reference')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Payment status fetched successfully.')
@@ -163,10 +161,9 @@ export class PaymentsController {
     description: 'Internal server error',
   })
   async verifyPayment(
-    @Param('provider') provider: PaymentProvider,
     @Param('reference') reference: string,
     @GetCurrentUser() user: JwtUser,
   ) {
-    return await this.paymentsService.verifyPayment(provider, reference, user);
+    return await this.paymentsService.verifyPayment(reference, user);
   }
 }

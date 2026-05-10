@@ -106,6 +106,8 @@ export class WalletsRepository {
     };
     const debitTransaction =
       await this.transactionsRepository.createTransaction(payload);
+
+    // We need to add the process of calling payment provider to credit the account number of the user here
   }
 
   async getWalletBalance(walletId: string): Promise<number | null> {

@@ -283,21 +283,7 @@ export class PaymentsService {
     }
   }
 
-  async verifyPayment(
-    provider: PaymentProvider,
-    reference: string,
-    user: JwtUser,
-  ) {
-    const handler = this.providerMap[provider];
-
-    if (!handler) {
-      throw new BadRequestException({
-        message: 'Unsupported provider.',
-        success: false,
-        status: 400,
-      });
-    }
-
+  async verifyPayment(reference: string, user: JwtUser) {
     // 1️⃣ CHECK DB FIRST (faster + avoids unnecessary provider calls)
     const transaction =
       await this.paymentsRepository.findPaymentTransactionByReference(
@@ -331,6 +317,17 @@ export class PaymentsService {
       };
     }
 
+    const provider = transaction.provider;
+    const handler = this.providerMap[provider];
+
+    if (!handler) {
+      throw new BadRequestException({
+        message: 'Unsupported provider.',
+        success: false,
+        status: 400,
+      });
+    }
+
     // 3️⃣ VERIFY WITH PROVIDER (fallback if webhook hasn't hit yet)
     const providerRes = await handler.verifyPayment(reference);
 
@@ -361,7 +358,7 @@ export class PaymentsService {
       message: 'Payment verified successfully.',
       success: true,
       status: 200,
-      data: transaction,
+      provider: transaction?.provider,
     };
   }
 
