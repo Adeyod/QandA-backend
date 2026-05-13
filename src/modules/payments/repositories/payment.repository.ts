@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { generatePaymentReference } from '../../../common/utils/helper';
 import { Plan, PLAN_PRICES } from '../../users/schemas/user.schema';
@@ -30,6 +30,13 @@ export class PaymentsRepository {
     private paymentModel: Model<PaymentDocument>,
   ) {}
 
+  async findPaidReferralsByUserIds(userIds: Types.ObjectId[]) {
+    const response = await this.paymentModel.find({
+      userId: { $in: userIds },
+      status: PaymentStatus.SUCCESSFUL,
+    });
+    return response;
+  }
   async createPaymentIntent(
     userId: Types.ObjectId,
     provider: PaymentProvider,
@@ -80,6 +87,7 @@ export class PaymentsRepository {
   async updatePaymentStatusUsingPaymentId(
     paymentId: Types.ObjectId,
     status: PaymentStatus,
+    session?: ClientSession,
   ): Promise<PaymentDocument | null> {
     const paidAt = new Date(Date.now());
     console.log('paidAt:', paidAt);
@@ -91,6 +99,7 @@ export class PaymentsRepository {
       },
       {
         returnDocument: 'after',
+        session,
       },
     );
 

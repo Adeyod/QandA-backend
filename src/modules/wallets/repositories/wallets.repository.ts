@@ -110,6 +110,20 @@ export class WalletsRepository {
     // We need to add the process of calling payment provider to credit the account number of the user here
   }
 
+  async findWalletsByUserIds(
+    userIds: string[] | Types.ObjectId[],
+  ): Promise<WalletDocument[]> {
+    if (!userIds?.length) return [];
+
+    const objectIds = userIds.map((id) =>
+      typeof id === 'string' ? new Types.ObjectId(id) : id,
+    );
+
+    return this.walletModel.find({
+      userId: { $in: objectIds },
+    });
+  }
+
   async getWalletBalance(walletId: string): Promise<number | null> {
     const id = new Types.ObjectId(walletId);
     const wallet = await this.walletModel.findById(id);

@@ -16,6 +16,22 @@ export class TransactionsRepository {
     private transactionModel: Model<TransactionDocument>,
   ) {}
 
+  async sumReferralEarnings(userId: Types.ObjectId) {
+    const response = await this.transactionModel.aggregate([
+      {
+        $match: {
+          userId,
+          type: 'REFERRAL_BONUS',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$amount' },
+        },
+      },
+    ]);
+  }
   async createTransaction(transactionCreationDto: TransactionCreationDto) {
     const { walletId, amount, description, transactionType } =
       transactionCreationDto;

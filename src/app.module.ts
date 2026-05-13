@@ -18,6 +18,7 @@ import { TokensModule } from './modules/tokens/tokens.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 import { WalletsModule } from './modules/wallets/wallets.module';
+import { ReferralsModule } from './modules/referrals/referrals.module';
 
 @Module({
   imports: [
@@ -125,6 +126,7 @@ import { WalletsModule } from './modules/wallets/wallets.module';
     WalletsModule,
     TransactionsModule,
     AccountsModule,
+    ReferralsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

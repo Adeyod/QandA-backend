@@ -13,6 +13,26 @@ export class UsersRepository {
     return this.userModel.findById(id);
   }
 
+  async countDocuments(filter: any) {
+    return this.userModel.countDocuments(filter);
+  }
+
+  async getThoseThatIReferred(filter: any) {
+    return await this.userModel.find(filter);
+  }
+
+  async findManyByIds(
+    ids: string[] | Types.ObjectId[],
+  ): Promise<UserDocument[]> {
+    const objectIds = ids.map((id) =>
+      typeof id === 'string' ? new Types.ObjectId(id) : id,
+    );
+
+    return this.userModel.find({
+      _id: { $in: objectIds },
+    });
+  }
+
   async findByEmail(email: string): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({
       email,
