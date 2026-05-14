@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { JwtUser } from '../../common/types/jwt-user.type';
 import { PaymentsRepository } from '../payments/repositories/payment.repository';
 import { TransactionsRepository } from '../transactions/repositories/transaction.repository';
+import { TransactionCategoryEnum } from '../transactions/schemas/transaction.schema';
 import { UsersRepository } from '../users/repositories/users.repository';
 import { Role } from '../users/schemas/user.schema';
 import { WalletsRepository } from '../wallets/repositories/wallets.repository';
@@ -59,52 +60,136 @@ export class ReferralsService {
         walletId: wallet._id.toString(),
         amount: rewardAmount,
         description,
+        category: TransactionCategoryEnum.REFERRAL_BONUS,
+        referredUserId: id,
+        referralLevel: ref.level,
       });
     }
   }
 
+  // async getReferralStats(userId: string, user: JwtUser) {
+  //   const userObj = new Types.ObjectId(userId);
+  //   if (user.role !== Role.ADMIN) {
+  //     if (userId !== user.sub.toString()) {
+  //       throw new ForbiddenException({
+  //         message: 'You can only get referral statistics that belong to you.',
+  //         success: false,
+  //         status: 403,
+  //       });
+  //     }
+  //   }
+
+  //   const totalReferred = await this.usersRepository.countDocuments({
+  //     referredBy: userObj,
+  //   });
+
+  //   const referredUsers = await this.usersRepository.getThoseThatIReferred({
+  //     referredBy: userObj,
+  //   });
+
+  //   const referredUserIds = referredUsers.map((u) => u._id);
+
+  //   const paidUsers =
+  //     await this.paymentsRepository.findPaidReferralsByUserIds(referredUserIds);
+
+  //   const paidCount = paidUsers.length;
+
+  //   const unpaidCount = totalReferred - paidCount;
+
+  //   const totalEarned =
+  //     await this.transactionsRepository.sumReferralEarnings(userObj);
+
+  //     const response = {
+  //     totalReferred,
+  //     paidCount,
+  //     unpaidCount,
+  //     totalEarned,
+  //   }
+
+  //   console.log("response:", response)
+
+  //   return response;
+  // }
+
   async getReferralStats(userId: string, user: JwtUser) {
     const userObj = new Types.ObjectId(userId);
+
     if (user.role !== Role.ADMIN) {
       if (userId !== user.sub.toString()) {
         throw new ForbiddenException({
-          message: 'You can only get referral statistics that belong to you.',
+          message: 'You can only get your own referral statistics.',
           success: false,
           status: 403,
         });
       }
     }
 
-    const totalReferred = await this.usersRepository.countDocuments({
-      referredBy: userObj,
+    // Get ALL referrals across levels (1–3)
+    const referrals = await this.usersRepository.getThoseThatIReferred({
+      'referralChain.userId': userObj,
     });
 
-    const referredUsers = await this.usersRepository.getThoseThatIReferred({
-      referredBy: userObj,
-    });
+    // ✅ Group by levels
+    let level1 = 0;
+    let level2 = 0;
+    let level3 = 0;
 
-    const referredUserIds = referredUsers.map((u) => u._id);
+    for (const ref of referrals) {
+      const match = ref.referralChain.find(
+        (r) => r.userId.toString() === userObj.toString(),
+      );
 
-    const paidUsers =
-      await this.paymentsRepository.findPaidReferralsByUserIds(referredUserIds);
+      if (!match) continue;
 
-    const paidCount = paidUsers.length;
+      if (match.level === 1) level1++;
+      if (match.level === 2) level2++;
+      if (match.level === 3) level3++;
+    }
+
+    const totalReferred = level1 + level2 + level3;
+
+    const referralIds = referrals.map((r) => r._id);
+
+    const paidPayments =
+      await this.paymentsRepository.findPaidReferralsByUserIds(referralIds);
+
+    console.log('paidPayments:', paidPayments);
+
+    const paidUserIds = new Set(paidPayments.map((p) => p.userId.toString()));
+
+    let paidCount = 0;
+
+    for (const ref of referrals) {
+      if (paidUserIds.has(ref._id.toString())) {
+        console.log('paidCount:', paidCount);
+        paidCount++;
+      }
+    }
 
     const unpaidCount = totalReferred - paidCount;
 
-    const totalEarned =
+    // ✅ Earnings fix
+    const earningsAgg =
       await this.transactionsRepository.sumReferralEarnings(userObj);
+
+    // const totalEarned = earningsAgg?.[0]?.total || 0;
 
     return {
       totalReferred,
+      breakdown: {
+        level1, // direct
+        level2, // grandchildren
+        level3, // great-grandchildren
+      },
       paidCount,
       unpaidCount,
-      totalEarned,
+      // totalEarned,
     };
   }
 
   async getReferralNetwork(userId: string, user: JwtUser) {
     const userObj = new Types.ObjectId(userId);
+
     if (user.role !== Role.ADMIN) {
       if (userId !== user.sub.toString()) {
         throw new ForbiddenException({
@@ -116,21 +201,22 @@ export class ReferralsService {
     }
 
     const referrals = await this.usersRepository.getThoseThatIReferred({
-    referredBy: userObj,
-  });
+      referredBy: userObj,
+    });
 
-  return referrals.map(user => ({
-    id: user._id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    referralCode: user.referralCode,
-    // createdAt: user.createdAt,
-  }));
+    return referrals.map((user) => ({
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      referralCode: user.referralCode,
+      // createdAt: user.createdAt,
+    }));
   }
 
   async getPaidAndUnpaidReferrals(userId: string, user: JwtUser) {
-const userObj = new Types.ObjectId(userId);
+    const userObj = new Types.ObjectId(userId);
+
     if (user.role !== Role.ADMIN) {
       if (userId !== user.sub.toString()) {
         throw new ForbiddenException({
@@ -140,37 +226,33 @@ const userObj = new Types.ObjectId(userId);
         });
       }
     }
-  const referrals = await this.usersRepository.getThoseThatIReferred({
-    referredBy: userObj,
-  });
+    const referrals = await this.usersRepository.getThoseThatIReferred({
+      referredBy: userObj,
+    });
 
-  const referralIds = referrals.map(r => r._id);
+    const referralIds = referrals.map((r) => r._id);
 
-  const paidPayments =
-    await this.paymentsRepository.findPaidReferralsByUserIds(
-      referralIds,
-    );
+    const paidPayments =
+      await this.paymentsRepository.findPaidReferralsByUserIds(referralIds);
 
-  const paidUserIds = new Set(
-    paidPayments.map(p => p.userId.toString()),
-  );
+    const paidUserIds = new Set(paidPayments.map((p) => p.userId.toString()));
 
-  const paid: any[] = [];
-  const unpaid: any[] = [];
+    const paid: any[] = [];
+    const unpaid: any[] = [];
 
-  for (const user of referrals) {
-    if (paidUserIds.has(user._id.toString())) {
-      paid.push(user);
-    } else {
-      unpaid.push(user);
+    for (const user of referrals) {
+      if (paidUserIds.has(user._id.toString())) {
+        paid.push(user);
+      } else {
+        unpaid.push(user);
+      }
     }
-  }
 
-  return {
-    paid,
-    unpaid,
-    totalPaid: paid.length,
-    totalUnpaid: unpaid.length,
-  };
-}
+    return {
+      paid,
+      unpaid,
+      totalPaid: paid.length,
+      totalUnpaid: unpaid.length,
+    };
+  }
 }

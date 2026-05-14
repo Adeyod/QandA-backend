@@ -34,6 +34,7 @@ export class WalletsService {
 
     return wallet;
   }
+
   async findWalletById(walletId: string, user: JwtUser) {
     const wallet = await this.walletsRepository.findWalletById(walletId);
 
@@ -57,6 +58,7 @@ export class WalletsService {
 
     return wallet;
   }
+
   async debitWallet(walletId: string, amount: number, user: JwtUser) {
     const walletExist = await this.walletsRepository.findWalletById(walletId);
     if (walletExist?.userId.toString() !== walletId) {
@@ -86,6 +88,7 @@ export class WalletsService {
       message: 'Payment processed successfully.',
     };
   }
+
   async getWalletBalance(walletId: string, user: JwtUser) {
     const wallet = await this.walletsRepository.findWalletById(walletId);
 

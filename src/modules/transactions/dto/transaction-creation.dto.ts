@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { TransactionType } from '../schemas/transaction.schema';
+import { Types } from 'mongoose';
+import {
+  TransactionCategoryEnum,
+  TransactionType,
+} from '../schemas/transaction.schema';
 
 export class TransactionCreationDto {
   @ApiProperty({
@@ -35,4 +39,29 @@ export class TransactionCreationDto {
   @IsNotEmpty({ message: 'Transaction type is required' })
   @IsEnum(TransactionType)
   transactionType!: TransactionType;
+
+  @ApiProperty({
+    description: 'This is the reason for the credit',
+    example: 'REFERRAL_BONUS',
+  })
+  @IsNotEmpty({ message: 'Category is required' })
+  @IsEnum(TransactionCategoryEnum)
+  category!: TransactionCategoryEnum;
+
+  @ApiProperty({
+    description:
+      'This is the person that got added to the referral network of the owner of the wallet.',
+    example: '30ek38ruu38wjf43owi3si',
+  })
+  @IsNotEmpty({ message: 'Referral user ID is required' })
+  referredUserId?: Types.ObjectId;
+
+  @ApiProperty({
+    description:
+      'This is the level at which the referred person belong to in the referral network of the person that owns the wallet credited.',
+    example: 'level2',
+  })
+  @IsNotEmpty({ message: 'Referal level is required' })
+  @IsNumber()
+  referralLevel?: number;
 }

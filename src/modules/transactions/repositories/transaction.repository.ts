@@ -32,9 +32,17 @@ export class TransactionsRepository {
       },
     ]);
   }
+
   async createTransaction(transactionCreationDto: TransactionCreationDto) {
-    const { walletId, amount, description, transactionType } =
-      transactionCreationDto;
+    const {
+      walletId,
+      amount,
+      description,
+      transactionType,
+      category,
+      referredUserId,
+      referralLevel,
+    } = transactionCreationDto;
     const id = new Types.ObjectId(walletId);
 
     const newTransaction = await new this.transactionModel({
@@ -42,6 +50,9 @@ export class TransactionsRepository {
       amount,
       type: transactionType,
       description,
+      category,
+      referredUserId,
+      referralLevel,
     }).save();
 
     return newTransaction;
@@ -113,6 +124,7 @@ export class TransactionsRepository {
 
     return response;
   }
+
   async getAllTransactions(
     queryWithPaginationDto: QueryWithPaginationDto,
   ): Promise<{

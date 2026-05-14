@@ -8,6 +8,11 @@ export enum TransactionType {
   DEBIT = 'DEBIT',
 }
 
+export enum TransactionCategoryEnum {
+  GENERAL = 'GENERAL',
+  REFERRAL_BONUS = 'REFERRAL_BONUS',
+}
+
 @Schema({ timestamps: true })
 export class Transaction {
   @Prop({ type: Types.ObjectId, ref: 'Wallet', required: true })
@@ -21,6 +26,21 @@ export class Transaction {
 
   @Prop({ type: String, required: true })
   description!: string;
+
+  @Prop({
+    type: String,
+    enum: TransactionCategoryEnum,
+    default: TransactionCategoryEnum.GENERAL,
+  })
+  category!: TransactionCategoryEnum;
+
+  // NEW: who triggered this bonus
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  referredUserId?: Types.ObjectId;
+
+  // NEW: level (1, 2, 3)
+  @Prop()
+  referralLevel?: number;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

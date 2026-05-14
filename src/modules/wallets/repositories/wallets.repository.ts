@@ -6,7 +6,10 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { TransactionsRepository } from '../../../modules/transactions/repositories/transaction.repository';
-import { TransactionType } from '../../../modules/transactions/schemas/transaction.schema';
+import {
+  TransactionCategoryEnum,
+  TransactionType,
+} from '../../../modules/transactions/schemas/transaction.schema';
 import { WalletCreditDto } from '../dto/wallet-credit.dto';
 import { WalletDebitDto } from '../dto/wallet-debit.dto';
 import { WalletDocument } from '../schemas/wallet.schema';
@@ -46,7 +49,14 @@ export class WalletsRepository {
   async creditWallet(
     walletCreditDto: WalletCreditDto,
   ): Promise<WalletDocument | null> {
-    const { walletId, amount, description } = walletCreditDto;
+    const {
+      walletId,
+      amount,
+      description,
+      category,
+      referredUserId,
+      referralLevel,
+    } = walletCreditDto;
     const id = new Types.ObjectId(walletId);
 
     const walletBal = await this.walletModel.findByIdAndUpdate(
@@ -64,6 +74,9 @@ export class WalletsRepository {
       amount,
       description,
       transactionType: TransactionType.CREDIT,
+      category,
+      referredUserId,
+      referralLevel,
     };
 
     const transactionCreation =
@@ -103,6 +116,7 @@ export class WalletsRepository {
       amount,
       description,
       transactionType: TransactionType.DEBIT,
+      category: TransactionCategoryEnum.GENERAL,
     };
     const debitTransaction =
       await this.transactionsRepository.createTransaction(payload);
