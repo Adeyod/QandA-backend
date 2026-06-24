@@ -42,8 +42,6 @@ export class AuthService {
     private refreshTokensService: RefreshTokensService,
   ) {}
   async registerUser(registerUserDto: RegisterUserDto) {
-    console.log('registerUserDto:', registerUserDto);
-
     const { firstName, lastName, email, password, phoneNumber, referredBy } =
       registerUserDto;
 

@@ -35,7 +35,7 @@ export class UsersRepository {
 
   async findByEmail(email: string): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({
-      email,
+      email: email.toLowerCase().trim(),
     });
     return user;
   }
