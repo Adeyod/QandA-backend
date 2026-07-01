@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { ClientSession, Types } from 'mongoose';
 import { JwtUser } from '../../common/types/jwt-user.type';
 import { PaymentsRepository } from '../payments/repositories/payment.repository';
 import { TransactionsRepository } from '../transactions/repositories/transaction.repository';
@@ -64,6 +64,70 @@ export class ReferralsService {
         referredUserId: id,
         referralLevel: ref.level,
       });
+    }
+  }
+  async processReferralRewardWithSession(
+    userId: string,
+    amount: number,
+    session: ClientSession,
+  ) {
+    const id = new Types.ObjectId(userId);
+    const user = await this.usersRepository.findByIdWithSession(id, session);
+
+    if (!user?.referralChain?.length) return;
+
+    const levelPercentMap: Record<number, number> = {
+      1: 0.15,
+      2: 0.075,
+      3: 0.025,
+    };
+
+    const formattedAmt = amount / 100;
+
+    const referralIds = user.referralChain.map((r) => r.userId);
+
+    const refUsers = await this.usersRepository.findManyByIdsWithSession(
+      referralIds,
+      session,
+    );
+
+    console.log('refUsers:', refUsers);
+
+    const refUserMap = new Map(refUsers.map((u) => [u._id.toString(), u]));
+
+    const wallets =
+      await this.walletsRepository.findWalletsByUserIdsWithSession(
+        referralIds,
+        session,
+      );
+
+    const walletMap = new Map(wallets.map((w) => [w.userId.toString(), w]));
+
+    for (const ref of user.referralChain) {
+      const percent = levelPercentMap[ref.level];
+      if (!percent) continue;
+
+      const refUser = refUserMap.get(ref.userId.toString());
+      if (!refUser) continue;
+
+      const wallet = walletMap.get(ref.userId.toString());
+      if (!wallet) continue;
+
+      const rewardAmount = formattedAmt * percent;
+
+      const description = `Level ${ref.level} referral bonus from ${user.firstName} ${user.lastName}`;
+
+      await this.walletsRepository.creditWalletWithSession(
+        {
+          walletId: wallet._id.toString(),
+          amount: rewardAmount,
+          description,
+          category: TransactionCategoryEnum.REFERRAL_BONUS,
+          referredUserId: id,
+          referralLevel: ref.level,
+        },
+        session,
+      );
     }
   }
 

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 import {
@@ -14,6 +14,14 @@ export class TransactionCreationDto {
   @IsNotEmpty({ message: 'Wallet ID is required' })
   @IsString({ message: 'Wallet ID must be a string' })
   walletId!: string;
+
+  @ApiPropertyOptional({
+    description: 'The Withdrawal ID for the transaction',
+    example: '45q9fak342d32284fak3841q',
+  })
+  @IsNotEmpty({ message: 'Withdrawal ID is required' })
+  @IsString({ message: 'Withdrawal ID must be a string' })
+  withdrawalId?: string;
 
   @ApiProperty({
     description:

@@ -57,7 +57,7 @@ export class PaymentsRepository {
       plan,
       userId,
     };
-    const reference = generatePaymentReference(payload);
+    const reference = generatePaymentReference(payload, 'PAYMENT');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     const newPayment = await new this.paymentModel({
@@ -80,6 +80,20 @@ export class PaymentsRepository {
       providerReference: reference,
       userId,
     });
+
+    return payment;
+  }
+  async getPaymentByRefAndUserIdWithSession(
+    reference: string,
+    userId: Types.ObjectId,
+    session: ClientSession,
+  ): Promise<PaymentDocument | null> {
+    const payment = await this.paymentModel
+      .findOne({
+        providerReference: reference,
+        userId,
+      })
+      .session(session);
 
     return payment;
   }

@@ -23,7 +23,10 @@ export const generateRefCode = (): string => {
   return code;
 };
 
-export const generatePaymentReference = (payload) => {
+export const generatePaymentReference = (
+  payload,
+  refType: 'PAYMENT' | 'WITHDRAWAL',
+) => {
   const { userId, plan } = payload;
 
   console.log('payload:', payload);
@@ -36,7 +39,7 @@ export const generatePaymentReference = (payload) => {
     });
   }
 
-  const ref = `PAYMENT_${plan}_${userId}_${Date.now()}`;
+  const ref = `${refType}_${plan}_${userId}_${Date.now()}`;
 
   return ref;
 };

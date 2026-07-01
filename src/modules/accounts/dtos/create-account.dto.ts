@@ -20,6 +20,15 @@ export class CreateAccountDto {
 
   @ApiProperty({
     description:
+      'This the code of the bank that the account number is domiciled.',
+    example: '042',
+  })
+  @IsNotEmpty({ message: 'Bank code is required.' })
+  @IsString({ message: 'Bank code must be a string' })
+  bankCode!: string;
+
+  @ApiProperty({
+    description:
       'This the name of the bank that the account number is domiciled.',
     example: 'Access Bank',
   })

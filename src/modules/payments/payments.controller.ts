@@ -6,11 +6,9 @@ import {
   Param,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
@@ -56,16 +54,6 @@ export class PaymentsController {
     @GetCurrentUser() user: JwtUser,
   ) {
     return await this.paymentsService.createPaymentIntent(provider, plan, user);
-  }
-
-  @Post('webhook/:provider')
-  @HttpCode(HttpStatus.OK)
-  async handleWebhook(
-    @Param('provider') provider: PaymentProvider,
-    @Req() req: Request,
-  ) {
-    // console.log('Body:', req.body);
-    return await this.paymentsService.handleWebhook(provider, req);
   }
 
   @Get('get-all-user-payments/:userId')

@@ -87,6 +87,71 @@ export class AccountsController {
     return await this.accountsService.getUserAccount(user, userId);
   }
 
+  @Get('resolve-bank-account-details/:bankCode/:accountNumber')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('Account fetched successfully.')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Fetches user account from third party API to confirm if the account exist or not.',
+    description:
+      'This is the endpoint for fetching user account details from third party API to confirm if the account exist.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Account fetched successfully.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Unable to fetch account details.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async resolveAccountFromThirdPartyApi(
+    @Param('bankCode') bankCode: string,
+    @Param('accountNumber') accountNumber: string,
+  ) {
+    const response = await this.accountsService.resolveAccountFromThirdPartyApi(
+      accountNumber,
+      bankCode,
+    );
+
+    return response;
+  }
+
+  @Get('get-bank-codes')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER, Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @SuccessMessage('Bank codes fetched successfully.')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Fetches bank codes from third party API.',
+    description:
+      'This is the endpoint for fetching bank codes from third party API.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Bank codes fetched successfully.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Unable to fetch bank codes.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async fetchBankCodes() {
+    const response = await this.accountsService.fetchBankCodes();
+
+    return response;
+  }
+
   @Get('get-all-accounts')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

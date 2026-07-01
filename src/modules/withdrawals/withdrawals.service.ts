@@ -1,0 +1,194 @@
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection, Types } from 'mongoose';
+import { JwtUser } from '../../common/types/jwt-user.type';
+import { generatePaymentReference } from '../../common/utils/helper';
+import { AccountsService } from '../accounts/accounts.service';
+import { PaystackService } from '../payments/providers/paystack/paystack.service';
+import { TransactionsRepository } from '../transactions/repositories/transaction.repository';
+import {
+  TransactionCategoryEnum,
+  TransactionType,
+} from '../transactions/schemas/transaction.schema';
+import { WalletsRepository } from '../wallets/repositories/wallets.repository';
+import { RequestWithdrawalDto } from './dtos/request-withdrawal.dto';
+import { WithdrawalsRepository } from './repositories/withdrawals.repository';
+import { WithdrawalStatus } from './schemas/withdrawal.schema';
+
+@Injectable()
+export class WithdrawalsService {
+  constructor(
+    @InjectConnection() private readonly connection: Connection,
+    private withdrawalsRepo: WithdrawalsRepository,
+    private walletsRepo: WalletsRepository,
+    private readonly accountsService: AccountsService,
+    private transactionsRepo: TransactionsRepository,
+    private paystackService: PaystackService,
+  ) {}
+
+  async requestWithdrawal(user: JwtUser, dto: RequestWithdrawalDto) {
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    const wallet = await this.walletsRepo.findWalletById(dto.walletId);
+
+    if (!wallet || wallet.balance < dto.amount) {
+      throw new BadRequestException({
+        message: 'Insufficient balance',
+        success: false,
+        status: 400,
+      });
+    }
+
+    const id = user.sub.toString();
+
+    const userAccount = await this.accountsService.getUserAccount(user, id);
+
+    const payload = {
+      userId: id,
+      plan: 'BANK_WITHDRAWAL',
+    };
+
+    const reference = generatePaymentReference(payload, 'WITHDRAWAL');
+
+    // 1. Create withdrawal record
+    const withdrawal = await this.withdrawalsRepo.createWithdrawalDocument({
+      userId: new Types.ObjectId(id),
+      walletId: wallet._id,
+      amount: dto.amount,
+      reference,
+      recipientCode: userAccount.transferRecipientCode,
+      status: WithdrawalStatus.PENDING,
+    });
+
+    console.log('withdrawal:', withdrawal);
+
+    // 2. Debit wallet
+    wallet.balance -= dto.amount;
+    await wallet.save();
+
+    const response = await this.transactionsRepo.createTransaction({
+      walletId: wallet._id.toString(),
+      amount: dto.amount,
+      description: 'Withdrawal request',
+      transactionType: TransactionType.DEBIT,
+      category: TransactionCategoryEnum.GENERAL,
+      withdrawalId: withdrawal._id.toString(),
+    });
+    console.log('response:', response);
+
+    try {
+      // 3. Call Paystack
+      const paystackResponse = await this.paystackService.creditUserBankAccount(
+        {
+          bankName: userAccount.bankName,
+          accountNumber: userAccount.accountNumber,
+          accountName: userAccount.accountName,
+          recipientCode: userAccount.transferRecipientCode,
+          amount: dto.amount,
+          walletId: wallet._id.toString(),
+          reference,
+        },
+      );
+      console.log('paystackResponse:', paystackResponse);
+
+      const updatedWithdrawalStatus = await this.withdrawalsRepo.updateStatus(
+        reference,
+        {
+          status: WithdrawalStatus.PROCESSING,
+          providerReference: paystackResponse.reference,
+          metadata: response,
+        },
+      );
+      console.log('updatedWithdrawalStatus:', updatedWithdrawalStatus);
+
+      return {
+        message: 'Withdrawal initiated',
+      };
+    } catch (error: any) {
+      // rollback
+      wallet.balance += dto.amount;
+      await wallet.save();
+
+      await this.withdrawalsRepo.updateStatus(reference, {
+        status: WithdrawalStatus.FAILED,
+        failureReason: error.message,
+      });
+
+      throw new BadRequestException('Transfer failed');
+    }
+  }
+
+  async handleWithdrawalSuccess(providerResponse: any) {
+    const {
+      reference,
+      metadata: { withdrawalId },
+    } = providerResponse.data;
+
+    const withdrawal = await this.withdrawalsRepo.findByReference(reference);
+
+    console.log('withdrawal:', withdrawal);
+
+    if (!withdrawal) return;
+
+    if (withdrawal.status === WithdrawalStatus.SUCCESS) {
+      return { message: 'Already processed' };
+    }
+
+    withdrawal.status = WithdrawalStatus.SUCCESS;
+    await withdrawal.save();
+
+    return { message: 'Withdrawal successful' };
+  }
+
+  async handleWithdrawalFailed(providerResponse: any) {
+    const {
+      reference,
+      metadata: { withdrawalId },
+    } = providerResponse.data;
+
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const withdrawal = await this.withdrawalsRepo.findByReferenceWithSession(
+        reference,
+        session,
+      );
+
+      console.log('withdrawal:', withdrawal);
+
+      if (!withdrawal) {
+        await session.abortTransaction();
+        return;
+      }
+
+      // Idempotency check (VERY IMPORTANT)
+      if (withdrawal.status === WithdrawalStatus.FAILED) {
+        await session.abortTransaction();
+        return { message: 'Already processed' };
+      }
+
+      // 1 Update withdrawal status
+      withdrawal.status = WithdrawalStatus.FAILED;
+      await withdrawal.save({ session });
+
+      // 2 Refund wallet
+      await this.walletsRepo.creditUserWallet(
+        withdrawal.userId,
+        withdrawal.amount,
+        session,
+      );
+
+      // 3 Commit
+      await session.commitTransaction();
+
+      return { message: 'Withdrawal failed and refunded' };
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+}

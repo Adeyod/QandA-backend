@@ -1,11 +1,9 @@
 import {
-  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
   Param,
-  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -89,43 +87,43 @@ export class WalletsController {
     return response;
   }
 
-  @Put('debit-wallet-by-walletId/:walletId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.USER)
-  @ApiBearerAuth('JWT-auth')
-  @SuccessMessage('Wallet debited successfully.')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Debit the wallet of a user.',
-    description:
-      'This is the endpoint for debiting the wallet of a user. It can be used by the user that owns the account.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Wallet debited successfully.',
-    type: ApiResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request. Unable to fetch wallet',
-  })
-  @ApiResponse({
-    status: 500,
-    description: 'Internal server error',
-  })
-  async debitWallet(
-    @Param('walletId') walletId: string,
-    @Body() amount: number,
-    @GetCurrentUser() user: JwtUser,
-  ) {
-    const response = await this.walletsService.debitWallet(
-      walletId,
-      amount,
-      user,
-    );
-    console.log('response:', response);
-    return response;
-  }
+  // @Put('debit-wallet-by-walletId/:walletId')
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(Role.USER)
+  // @ApiBearerAuth('JWT-auth')
+  // @SuccessMessage('Wallet debited successfully.')
+  // @HttpCode(HttpStatus.OK)
+  // @ApiOperation({
+  //   summary: 'Debit the wallet of a user.',
+  //   description:
+  //     'This is the endpoint for debiting the wallet of a user. It can be used by the user that owns the account.',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Wallet debited successfully.',
+  //   type: ApiResponseDto,
+  // })
+  // @ApiResponse({
+  //   status: 400,
+  //   description: 'Bad request. Unable to fetch wallet',
+  // })
+  // @ApiResponse({
+  //   status: 500,
+  //   description: 'Internal server error',
+  // })
+  // async debitWallet(
+  //   @Param('walletId') walletId: string,
+  //   @Body() amount: number,
+  //   @GetCurrentUser() user: JwtUser,
+  // ) {
+  //   const response = await this.walletsService.debitWallet(
+  //     walletId,
+  //     amount,
+  //     user,
+  //   );
+  //   console.log('response:', response);
+  //   return response;
+  // }
 
   @Get('get-wallet-balance-by-walletId/:walletId')
   @UseGuards(JwtAuthGuard, RolesGuard)

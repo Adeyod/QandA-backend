@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 import { TransactionsRepository } from '../../../modules/transactions/repositories/transaction.repository';
 import {
   TransactionCategoryEnum,
@@ -46,6 +46,24 @@ export class WalletsRepository {
     return wallet;
   }
 
+  async creditUserWallet(
+    userId: Types.ObjectId,
+    amount: number,
+    session: ClientSession,
+  ) {
+    const response = await this.walletModel
+      .findByIdAndUpdate(
+        {
+          userId,
+        },
+        { $inc: { balance: amount } },
+        { returnDocument: 'after' },
+      )
+      .session(session);
+
+    return response;
+  }
+
   async creditWallet(
     walletCreditDto: WalletCreditDto,
   ): Promise<WalletDocument | null> {
@@ -81,6 +99,52 @@ export class WalletsRepository {
 
     const transactionCreation =
       await this.transactionsRepository.createTransaction(payload);
+    return walletBal;
+  }
+  async creditWalletWithSession(
+    walletCreditDto: WalletCreditDto,
+    session: ClientSession,
+  ): Promise<WalletDocument | null> {
+    const {
+      walletId,
+      amount,
+      description,
+      category,
+      referredUserId,
+      referralLevel,
+    } = walletCreditDto;
+    const id = new Types.ObjectId(walletId);
+
+    const walletBal = await this.walletModel
+      .findByIdAndUpdate(
+        id,
+        {
+          $inc: { balance: amount },
+        },
+        {
+          returnDocument: 'after',
+        },
+      )
+      .session(session);
+
+    const payload = {
+      walletId,
+      amount,
+      description,
+      transactionType: TransactionType.CREDIT,
+      category,
+      referredUserId,
+      referralLevel,
+    };
+
+    const transactionCreation =
+      await this.transactionsRepository.createTransactionWithSession(
+        payload,
+        session,
+      );
+
+    console.log('walletBal:', walletBal);
+    console.log('transactionCreation:', transactionCreation);
     return walletBal;
   }
 
@@ -133,9 +197,25 @@ export class WalletsRepository {
       typeof id === 'string' ? new Types.ObjectId(id) : id,
     );
 
-    return this.walletModel.find({
+    return await this.walletModel.find({
       userId: { $in: objectIds },
     });
+  }
+  async findWalletsByUserIdsWithSession(
+    userIds: string[] | Types.ObjectId[],
+    session: ClientSession,
+  ): Promise<WalletDocument[]> {
+    if (!userIds?.length) return [];
+
+    const objectIds = userIds.map((id) =>
+      typeof id === 'string' ? new Types.ObjectId(id) : id,
+    );
+
+    return await this.walletModel
+      .find({
+        userId: { $in: objectIds },
+      })
+      .session(session);
   }
 
   async getWalletBalance(walletId: string): Promise<number | null> {

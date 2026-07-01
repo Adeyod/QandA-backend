@@ -59,36 +59,6 @@ export class WalletsService {
     return wallet;
   }
 
-  async debitWallet(walletId: string, amount: number, user: JwtUser) {
-    const walletExist = await this.walletsRepository.findWalletById(walletId);
-    if (walletExist?.userId.toString() !== walletId) {
-      throw new ForbiddenException({
-        message: 'You can only withdraw from your wallet.',
-        success: false,
-        status: 403,
-      });
-    }
-
-    if (!walletExist) {
-      throw new NotFoundException({
-        message: 'Wallet not found.',
-        status: 404,
-        success: false,
-      });
-    }
-
-    const dto = {
-      walletId,
-      amount,
-      description: 'Referral Bonus',
-    };
-    const wallet = await this.walletsRepository.debitWallet(dto);
-
-    return {
-      message: 'Payment processed successfully.',
-    };
-  }
-
   async getWalletBalance(walletId: string, user: JwtUser) {
     const wallet = await this.walletsRepository.findWalletById(walletId);
 

@@ -12,6 +12,9 @@ export class Account {
   bankName!: string;
 
   @Prop({ required: true, type: String })
+  transferRecipientCode!: string;
+
+  @Prop({ required: true, type: String })
   accountNumber!: string;
 
   @Prop({ required: true, type: String })

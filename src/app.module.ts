@@ -19,6 +19,8 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
 import { UsersModule } from './modules/users/users.module';
 import { WalletsModule } from './modules/wallets/wallets.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
+import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
+import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
 
 @Module({
   imports: [
@@ -127,6 +129,8 @@ import { ReferralsModule } from './modules/referrals/referrals.module';
     TransactionsModule,
     AccountsModule,
     ReferralsModule,
+    WithdrawalsModule,
+    PaymentGatewayModule,
   ],
   controllers: [AppController],
   providers: [AppService],

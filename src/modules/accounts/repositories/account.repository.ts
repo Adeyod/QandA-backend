@@ -14,6 +14,7 @@ export class AccountsRepository {
   async createAccount(
     userId: Types.ObjectId,
     createAccountDto: CreateAccountDto,
+    transferRecipientCode: string,
   ): Promise<AccountDocument> {
     const { bankName, accountNumber, accountName } = createAccountDto;
 
@@ -24,8 +25,10 @@ export class AccountsRepository {
       accountNumber,
       bankName,
       userId,
+      transferRecipientCode,
     }).save();
 
+    console.log('account:', account);
     return account;
   }
 

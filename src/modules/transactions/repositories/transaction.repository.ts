@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { TransactionCreationDto } from '../dto/transaction-creation.dto';
 import { TransactionResponseDto } from '../dto/transaction-response.dto';
@@ -42,6 +42,7 @@ export class TransactionsRepository {
       category,
       referredUserId,
       referralLevel,
+      withdrawalId,
     } = transactionCreationDto;
     const id = new Types.ObjectId(walletId);
 
@@ -53,7 +54,37 @@ export class TransactionsRepository {
       category,
       referredUserId,
       referralLevel,
+      withdrawalId: withdrawalId && new Types.ObjectId(withdrawalId),
     }).save();
+
+    return newTransaction;
+  }
+  async createTransactionWithSession(
+    transactionCreationDto: TransactionCreationDto,
+    session: ClientSession,
+  ) {
+    const {
+      walletId,
+      amount,
+      description,
+      transactionType,
+      category,
+      referredUserId,
+      referralLevel,
+      withdrawalId,
+    } = transactionCreationDto;
+    const id = new Types.ObjectId(walletId);
+
+    const newTransaction = await new this.transactionModel({
+      walletId: id,
+      amount,
+      type: transactionType,
+      description,
+      category,
+      referredUserId,
+      referralLevel,
+      withdrawalId: withdrawalId && new Types.ObjectId(withdrawalId),
+    }).save({ session });
 
     return newTransaction;
   }

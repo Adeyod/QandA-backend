@@ -6,7 +6,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Request } from 'express';
 import { Connection, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { JwtUser } from '../../common/types/jwt-user.type';
@@ -18,7 +17,12 @@ import { PaymentResponseDto } from './dto/payment-response.dto';
 import { IPaymentProvider } from './providers/interfaces/provider.interface';
 import { PaystackService } from './providers/paystack/paystack.service';
 import { PaymentsRepository } from './repositories/payment.repository';
-import { PaymentProvider, PaymentStatus } from './schemas/payment.schema';
+import {
+  PaymentDocument,
+  PaymentProvider,
+  PaymentStatus,
+  WebhookProcessionTransactionType,
+} from './schemas/payment.schema';
 
 @Injectable()
 export class PaymentsService {
@@ -122,6 +126,7 @@ export class PaymentsService {
       amount: createIntent.amount * 100,
       reference: createIntent.reference,
       userId: findUser._id.toString(),
+      type: WebhookProcessionTransactionType.PAYMENT,
     });
 
     const updateIntent = await this.paymentsRepository.updateIntentWithAuthUrl(
@@ -132,7 +137,41 @@ export class PaymentsService {
     return providerResponse;
   }
 
-  // async handleWebhook(provider: PaymentProvider, req: Request) {
+  // async verifyPayment(reference: string, user: JwtUser) {
+  //   // 1️⃣ CHECK DB FIRST (faster + avoids unnecessary provider calls)
+  //   const transaction =
+  //     await this.paymentsRepository.findPaymentTransactionByReference(
+  //       reference,
+  //     );
+
+  //   if (!transaction) {
+  //     throw new NotFoundException({
+  //       message: 'Transaction not found.',
+  //       success: false,
+  //       status: 404,
+  //     });
+  //   }
+
+  //   // Ownership check
+  //   if (transaction.userId.toString() !== user.sub.toString()) {
+  //     throw new ForbiddenException({
+  //       message: 'You are not authorized to access this transaction.',
+  //       success: false,
+  //       status: 403,
+  //     });
+  //   }
+
+  //   // 2️⃣ IDEMPOTENCY CHECK (webhook might have already processed it)
+  //   if (transaction.status === 'SUCCESSFUL') {
+  //     return {
+  //       message: 'Payment already verified.',
+  //       success: true,
+  //       status: 200,
+  //       data: transaction,
+  //     };
+  //   }
+
+  //   const provider = transaction.provider;
   //   const handler = this.providerMap[provider];
 
   //   if (!handler) {
@@ -143,218 +182,42 @@ export class PaymentsService {
   //     });
   //   }
 
-  //   const providerResponse = await handler.handleWebhook(req);
+  //   // 3️⃣ VERIFY WITH PROVIDER (fallback if webhook hasn't hit yet)
+  //   const providerRes = await handler.verifyPayment(reference);
 
-  //   if (providerResponse.event !== 'charge.success') {
-  //     return { message: 'Payment not successful.' };
+  //   if (!providerRes || providerRes.status !== 'success') {
+  //     throw new BadRequestException({
+  //       message: 'Payment not successful yet.',
+  //       success: false,
+  //       status: 400,
+  //     });
   //   }
 
-  //   if (providerResponse.event === 'charge.success') {
-  //     // GET ACCOUNT USING ACCOUNT ID AND USER ID
-  //     const {
-  //       reference,
-  //       status,
-  //       created_at,
-  //       metadata: { amount, userId, email },
-  //       // authorization: { bank, account_name },
-  //     } = providerResponse.data;
-
-  //     const amt = parseFloat(amount.toString().replace(/,/g, ''));
-
-  //     if (isNaN(amt)) {
-  //       throw new BadRequestException({
-  //         message: 'Invalid amount provided. Please provide a valid number',
-  //         status: 400,
-  //         success: false,
-  //       });
-  //     }
-
-  //     const user = new Types.ObjectId(userId);
-
-  //     const payment = await this.paymentsRepository.getPaymentByRefAndUserId(
-  //       reference,
-  //       user,
-  //     );
-
-  //     if (!payment) {
-  //       throw new NotFoundException({
-  //         message: 'Payment document not found.',
-  //         status: 404,
-  //         success: false,
-  //       });
-  //     }
-
-  //     if (payment.verified) {
-  //       return { message: 'Payment already processed.' };
-  //     }
-
-  //     const verifyResponse = await handler.verifyPayment(reference);
-
-  //     const {
-  //       status: _status,
-  //       reference: _ref,
-  //       amount: _amt,
-  //       metadata: {
-  //         email: _email,
-  //         amount: _amount,
-  //         reference: _reference,
-  //         userId: _userId,
-  //       },
-  //     } = verifyResponse;
-
-  //     if (_status === 'success') {
-  //       payment.verified = true;
-  //       if (payment.status === PaymentStatus.PENDING) {
-  //         const paymentUpdateRes =
-  //           await this.paymentsRepository.updatePaymentStatusUsingPaymentId(
-  //             payment._id,
-  //             PaymentStatus.SUCCESSFUL,
-  //           );
-
-  //         if (!paymentUpdateRes) {
-  //           throw new BadRequestException({
-  //             message: 'Unable to process payment webhook.',
-  //             success: false,
-  //             status: 400,
-  //           });
-  //         }
-
-  //         const userExist = await this.usersRepository.findById(user);
-  //         if (!userExist) {
-  //           throw new NotFoundException({
-  //             message: 'User not found.',
-  //             success: false,
-  //             status: 404,
-  //           });
-  //         }
-
-  //         userExist.plans.push(payment.plan);
-  //         const userId = userExist._id.toString();
-  //         const formattedAmt = amount / 100;
-  //         const payRefferalBonus =
-  //           await this.referralsService.processReferralReward(
-  //             userId,
-  //             formattedAmt,
-  //           );
-  //       }
-  //       await payment.save();
-  //     }
-
-  //     return { message: 'successful' };
+  //   // 4️⃣ VALIDATE DATA INTEGRITY
+  //   if (transaction.amount !== providerRes.amount) {
+  //     throw new BadRequestException({
+  //       message: 'Payment details mismatch.',
+  //       success: false,
+  //       status: 400,
+  //     });
   //   }
+
+  //   // 5️⃣ ONLY UPDATE STATUS (DO NOT CALL BUSINESS LOGIC)
+  //   transaction.status = PaymentStatus.SUCCESSFUL;
+  //   // transaction.providerResponse = providerRes;
+
+  //   await transaction.save();
+
+  //   return {
+  //     message: 'Payment verified successfully.',
+  //     success: true,
+  //     status: 200,
+  //     provider: transaction?.provider,
+  //   };
   // }
 
-  async handleWebhook(provider: PaymentProvider, req: Request) {
-    const handler = this.providerMap[provider];
-
-    if (!handler) {
-      throw new BadRequestException({
-        message: 'Unsupported provider.',
-        success: false,
-        status: 400,
-      });
-    }
-
-    const providerResponse = await handler.handleWebhook(req);
-
-    if (providerResponse.event !== 'charge.success') {
-      return { message: 'Payment not successful.' };
-    }
-
-    const {
-      reference,
-      metadata: { amount, userId },
-    } = providerResponse.data;
-
-    const amt = Number(String(amount).replace(/,/g, ''));
-
-    if (isNaN(amt)) {
-      throw new BadRequestException({
-        message: 'Invalid amount provided.',
-        status: 400,
-        success: false,
-      });
-    }
-
-    const userObjectId = new Types.ObjectId(userId);
-
-    const payment = await this.paymentsRepository.getPaymentByRefAndUserId(
-      reference,
-      userObjectId,
-    );
-
-    if (!payment) {
-      throw new NotFoundException({
-        message: 'Payment document not found.',
-        status: 404,
-        success: false,
-      });
-    }
-
-    if (payment.verified) {
-      return { message: 'Payment already processed.' };
-    }
-
-    const verifyResponse = await handler.verifyPayment(reference);
-
-    if (verifyResponse.status !== 'success') {
-      return { message: 'Payment verification failed.' };
-    }
-
-    const session = await this.connection.startSession();
-    session.startTransaction();
-
-    try {
-      // 1. Update payment ONLY ONCE (single source of truth)
-      await this.paymentsRepository.updatePaymentStatusUsingPaymentId(
-        payment._id,
-        PaymentStatus.SUCCESSFUL,
-        session,
-      );
-
-      // 2. Fetch user inside transaction
-      const userExist = await this.usersRepository.findById(userObjectId);
-
-      if (!userExist) {
-        throw new NotFoundException({
-          message: 'User not found.',
-          success: false,
-          status: 404,
-        });
-      }
-
-      // 3. Update user plan
-      userExist.plans.push(payment.plan);
-      await userExist.save({ session });
-
-      // 4. Commit DB changes FIRST
-      await session.commitTransaction();
-
-      // 5. Mark payment verified (outside transaction since already committed)
-      payment.verified = true;
-      await payment.save();
-
-      // 6. Referral reward (SAFE — does NOT break payment flow)
-      try {
-        await this.referralsService.processReferralReward(
-          userExist._id.toString(),
-          amt / 100,
-        );
-      } catch (error) {
-        console.error('Referral reward failed:', error);
-      }
-
-      return { message: 'successful' };
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      session.endSession();
-    }
-  }
-
   async verifyPayment(reference: string, user: JwtUser) {
-    // 1️⃣ CHECK DB FIRST (faster + avoids unnecessary provider calls)
+    // 1️⃣ Check DB first
     const transaction =
       await this.paymentsRepository.findPaymentTransactionByReference(
         reference,
@@ -368,7 +231,7 @@ export class PaymentsService {
       });
     }
 
-    // Ownership check
+    // 2️⃣ Ownership check
     if (transaction.userId.toString() !== user.sub.toString()) {
       throw new ForbiddenException({
         message: 'You are not authorized to access this transaction.',
@@ -377,8 +240,8 @@ export class PaymentsService {
       });
     }
 
-    // 2️⃣ IDEMPOTENCY CHECK (webhook might have already processed it)
-    if (transaction.status === 'SUCCESSFUL') {
+    // 3️⃣ If webhook already processed it → RETURN immediately
+    if (transaction.status === PaymentStatus.SUCCESSFUL) {
       return {
         message: 'Payment already verified.',
         success: true,
@@ -387,6 +250,7 @@ export class PaymentsService {
       };
     }
 
+    // 4️⃣ Fallback: verify with provider (NO DB WRITE)
     const provider = transaction.provider;
     const handler = this.providerMap[provider];
 
@@ -398,18 +262,17 @@ export class PaymentsService {
       });
     }
 
-    // 3️⃣ VERIFY WITH PROVIDER (fallback if webhook hasn't hit yet)
     const providerRes = await handler.verifyPayment(reference);
 
     if (!providerRes || providerRes.status !== 'success') {
-      throw new BadRequestException({
+      return {
         message: 'Payment not successful yet.',
         success: false,
         status: 400,
-      });
+      };
     }
 
-    // 4️⃣ VALIDATE DATA INTEGRITY
+    // 5️⃣ Validate integrity
     if (transaction.amount !== providerRes.amount) {
       throw new BadRequestException({
         message: 'Payment details mismatch.',
@@ -418,17 +281,15 @@ export class PaymentsService {
       });
     }
 
-    // 5️⃣ ONLY UPDATE STATUS (DO NOT CALL BUSINESS LOGIC)
-    transaction.status = PaymentStatus.SUCCESSFUL;
-    // transaction.providerResponse = providerRes;
-
-    await transaction.save();
+    // 🚨 IMPORTANT: DO NOT UPDATE DATABASE HERE
 
     return {
-      message: 'Payment verified successfully.',
+      message:
+        'Payment successful. Awaiting final confirmation (webhook processing).',
       success: true,
       status: 200,
-      provider: transaction?.provider,
+      paymentStatus: 'SUCCESS_PENDING_WEBHOOK',
+      provider: transaction.provider,
     };
   }
 
@@ -477,4 +338,169 @@ export class PaymentsService {
 
     return payments;
   }
+
+  async handlePaymentWebhook(providerResponse: any) {
+    const {
+      reference,
+      metadata: { amount, userId },
+    } = providerResponse.data;
+
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const payment =
+        await this.paymentsRepository.getPaymentByRefAndUserIdWithSession(
+          reference,
+          new Types.ObjectId(userId),
+          session,
+        );
+
+      console.log('payment:', payment);
+
+      if (!payment) throw new NotFoundException('Payment not found');
+
+      // 🔐 Idempotency guard
+      if (payment.status === PaymentStatus.SUCCESSFUL) {
+        await session.abortTransaction();
+        return { message: 'Already processed' };
+      }
+
+      // Verify with provider
+      const verifyResponse =
+        await this.providerMap[payment.provider].verifyPayment(reference);
+
+      console.log('verifyResponse:', verifyResponse);
+
+      if (verifyResponse.status !== 'success') {
+        await session.abortTransaction();
+        return { message: 'Verification failed' };
+      }
+
+      // ✅ Atomic update + business logic
+      payment.status = PaymentStatus.SUCCESSFUL;
+      payment.verified = true;
+      await payment.save({ session });
+
+      await this.processSuccessfulPayment(payment, session);
+
+      await session.commitTransaction();
+
+      return { message: 'Payment processed' };
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  private async processSuccessfulPayment(payment: PaymentDocument, session) {
+    const userExist = await this.usersRepository.findByIdWithSession(
+      payment.userId,
+      session,
+    );
+
+    console.log('userExist:', userExist);
+
+    if (!userExist) {
+      throw new NotFoundException('User not found');
+    }
+
+    userExist.plans.push(payment.plan);
+    await userExist.save({ session });
+
+    // async safe
+    await this.referralsService
+      .processReferralRewardWithSession(
+        userExist._id.toString(),
+        payment.amount / 100,
+        session,
+      )
+      .catch(console.error);
+  }
+
+  // async handlePaymentWebhook(providerResponse: any) {
+  //   const {
+  //     reference,
+  //     metadata: { amount, userId },
+  //   } = providerResponse.data;
+
+  //   const amt = Number(String(amount).replace(/,/g, ''));
+
+  //   if (isNaN(amt)) {
+  //     throw new BadRequestException({
+  //       message: 'Invalid amount provided.',
+  //       status: 400,
+  //       success: false,
+  //     });
+  //   }
+
+  //   const userObjectId = new Types.ObjectId(userId);
+
+  //   const payment = await this.paymentsRepository.getPaymentByRefAndUserId(
+  //     reference,
+  //     userObjectId,
+  //   );
+
+  //   if (!payment) {
+  //     throw new NotFoundException({
+  //       message: 'Payment document not found.',
+  //       status: 404,
+  //       success: false,
+  //     });
+  //   }
+
+  //   if (payment.verified) {
+  //     return { message: 'Payment already processed.' };
+  //   }
+
+  //   const verifyResponse =
+  //     await this.providerMap[PaymentProvider.PAYSTACK].verifyPayment(reference);
+
+  //   if (verifyResponse.status !== 'success') {
+  //     return { message: 'Payment verification failed.' };
+  //   }
+
+  //   const session = await this.connection.startSession();
+  //   session.startTransaction();
+
+  //   try {
+  //     await this.paymentsRepository.updatePaymentStatusUsingPaymentId(
+  //       payment._id,
+  //       PaymentStatus.SUCCESSFUL,
+  //       session,
+  //     );
+
+  //     const userExist = await this.usersRepository.findById(userObjectId);
+
+  //     if (!userExist) {
+  //       throw new NotFoundException({
+  //         message: 'User not found',
+  //         status: 404,
+  //         success: false,
+  //       });
+  //     }
+
+  //     userExist.plans.push(payment.plan);
+  //     await userExist.save({ session });
+
+  //     await session.commitTransaction();
+
+  //     payment.verified = true;
+  //     await payment.save({ session });
+
+  //     // safe async
+  //     this.referralsService
+  //       .processReferralReward(userExist._id.toString(), amt / 100)
+  //       .catch(console.error);
+
+  //     return { message: 'Payment processed' };
+  //   } catch (error) {
+  //     await session.abortTransaction();
+  //     throw error;
+  //   } finally {
+  //     session.endSession();
+  //   }
+  // }
 }

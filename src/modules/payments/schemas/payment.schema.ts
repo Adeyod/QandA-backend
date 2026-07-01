@@ -11,6 +11,11 @@ export enum PaymentStatus {
   EXPIRED = 'EXPIRED',
 }
 
+export enum WebhookProcessionTransactionType {
+  PAYMENT = 'PAYMENT',
+  WITHDRAWAL = 'WITHDRAWAL',
+}
+
 export enum PaymentProvider {
   PAYSTACK = 'paystack',
   // FLUTTERWAVE = 'flutterwave',

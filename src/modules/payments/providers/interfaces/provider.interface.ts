@@ -1,10 +1,12 @@
 import { Request } from 'express';
+import { WebhookProcessionTransactionType } from '../../schemas/payment.schema';
 
 export interface PaymentInitializationPayload {
   email: string;
   amount: number;
   reference: string;
   userId: string;
+  type: WebhookProcessionTransactionType;
 }
 
 export interface PaymentProviderResponse {

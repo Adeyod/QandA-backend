@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { generateRefCode } from '../../../common/utils/helper';
 import { Role, User, UserDocument } from '../schemas/user.schema';
@@ -10,11 +10,17 @@ export class UsersRepository {
   constructor(@InjectModel('User') private userModel: Model<UserDocument>) {}
 
   async findById(id: Types.ObjectId): Promise<UserDocument | null> {
-    return this.userModel.findById(id);
+    return await this.userModel.findById(id);
+  }
+  async findByIdWithSession(
+    id: Types.ObjectId,
+    session: ClientSession,
+  ): Promise<UserDocument | null> {
+    return await this.userModel.findById(id).session(session);
   }
 
   async countDocuments(filter: any) {
-    return this.userModel.countDocuments(filter);
+    return await this.userModel.countDocuments(filter);
   }
 
   async getThoseThatIReferred(filter: any) {
@@ -28,9 +34,23 @@ export class UsersRepository {
       typeof id === 'string' ? new Types.ObjectId(id) : id,
     );
 
-    return this.userModel.find({
+    return await this.userModel.find({
       _id: { $in: objectIds },
     });
+  }
+  async findManyByIdsWithSession(
+    ids: string[] | Types.ObjectId[],
+    session: ClientSession,
+  ): Promise<UserDocument[]> {
+    const objectIds = ids.map((id) =>
+      typeof id === 'string' ? new Types.ObjectId(id) : id,
+    );
+
+    return await this.userModel
+      .find({
+        _id: { $in: objectIds },
+      })
+      .session(session);
   }
 
   async findByEmail(email: string): Promise<UserDocument | null> {

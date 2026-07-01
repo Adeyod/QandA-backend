@@ -14,10 +14,11 @@ import { Payment, PaymentSchema } from './schemas/payment.schema';
     MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]),
     UsersModule,
     WalletsModule,
+
     forwardRef(() => ReferralsModule),
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService, PaymentsRepository, PaystackService],
-  exports: [PaymentsRepository],
+  exports: [PaymentsService, PaymentsRepository, PaystackService],
 })
 export class PaymentsModule {}

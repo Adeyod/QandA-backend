@@ -18,6 +18,9 @@ export class Transaction {
   @Prop({ type: Types.ObjectId, ref: 'Wallet', required: true })
   walletId!: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Withdrawal' })
+  withdrawalId?: Types.ObjectId;
+
   @Prop({ required: true })
   amount!: number;
 
