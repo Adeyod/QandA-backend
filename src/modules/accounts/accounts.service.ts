@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { ClientSession, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { JwtUser } from '../../common/types/jwt-user.type';
 import { PaystackService } from '../payments/providers/paystack/paystack.service';
@@ -69,6 +69,40 @@ export class AccountsService {
 
     const id = new Types.ObjectId(userId);
     const account = await this.accountsRepository.getUserAccount(id);
+    console.log('account:', account);
+
+    if (!account) {
+      throw new NotFoundException({
+        message: 'Account not found.',
+        status: 404,
+        success: false,
+      });
+    }
+
+    return account;
+  }
+  async getUserAccountWithSession(
+    user: JwtUser,
+    userId: string,
+    session: ClientSession,
+  ) {
+    const { sub, role } = user;
+
+    if (role === Role.USER) {
+      if (sub.toString() !== userId) {
+        throw new UnauthorizedException({
+          message: 'You can only access your personal account.',
+          success: false,
+          status: 401,
+        });
+      }
+    }
+
+    const id = new Types.ObjectId(userId);
+    const account = await this.accountsRepository.getUserAccountWithSession(
+      id,
+      session,
+    );
     console.log('account:', account);
 
     if (!account) {

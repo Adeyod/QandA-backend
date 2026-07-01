@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { CreateAccountDto } from '../dtos/create-account.dto';
 import { Account, AccountDocument } from '../schemas/accounts.schema';
@@ -36,6 +36,16 @@ export class AccountsRepository {
     userId: Types.ObjectId,
   ): Promise<AccountDocument | null> {
     const userAccount = await this.accountModel.findOne({ userId });
+
+    return userAccount;
+  }
+  async getUserAccountWithSession(
+    userId: Types.ObjectId,
+    session: ClientSession,
+  ): Promise<AccountDocument | null> {
+    const userAccount = await this.accountModel
+      .findOne({ userId })
+      .session(session);
 
     return userAccount;
   }

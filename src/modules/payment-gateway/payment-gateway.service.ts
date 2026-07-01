@@ -37,6 +37,7 @@ export class PaymentGatewayService {
     const providerResponse = await handler.handleWebhook(req);
 
     const event = providerResponse.event;
+    console.log('event:', event);
 
     switch (event) {
       case 'charge.success':

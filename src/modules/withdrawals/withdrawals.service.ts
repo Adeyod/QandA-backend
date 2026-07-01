@@ -5,6 +5,7 @@ import { JwtUser } from '../../common/types/jwt-user.type';
 import { generatePaymentReference } from '../../common/utils/helper';
 import { AccountsService } from '../accounts/accounts.service';
 import { PaystackService } from '../payments/providers/paystack/paystack.service';
+import { WebhookProcessionTransactionType } from '../payments/schemas/payment.schema';
 import { TransactionsRepository } from '../transactions/repositories/transaction.repository';
 import {
   TransactionCategoryEnum,
@@ -26,59 +27,174 @@ export class WithdrawalsService {
     private paystackService: PaystackService,
   ) {}
 
+  // async requestWithdrawal(user: JwtUser, dto: RequestWithdrawalDto) {
+  //   const session = await this.connection.startSession();
+  //   session.startTransaction();
+
+  //   const wallet = await this.walletsRepo.findWalletById(dto.walletId);
+
+  //   if (!wallet || wallet.balance < dto.amount) {
+  //     throw new BadRequestException({
+  //       message: 'Insufficient balance',
+  //       success: false,
+  //       status: 400,
+  //     });
+  //   }
+
+  //   const id = user.sub.toString();
+
+  //   const userAccount = await this.accountsService.getUserAccount(user, id);
+
+  //   const payload = {
+  //     userId: id,
+  //     plan: 'BANK_WITHDRAWAL',
+  //   };
+
+  //   const reference = generatePaymentReference(payload, 'WITHDRAWAL');
+
+  //   // 1. Create withdrawal record
+  //   const withdrawal = await this.withdrawalsRepo.createWithdrawalDocument({
+  //     userId: new Types.ObjectId(id),
+  //     walletId: wallet._id,
+  //     amount: dto.amount,
+  //     reference,
+  //     recipientCode: userAccount.transferRecipientCode,
+  //     status: WithdrawalStatus.PENDING,
+  //   });
+
+  //   console.log('withdrawal:', withdrawal);
+
+  //   // 2. Debit wallet
+  //   wallet.balance -= dto.amount;
+  //   await wallet.save();
+
+  //   const response = await this.transactionsRepo.createTransaction({
+  //     walletId: wallet._id.toString(),
+  //     amount: dto.amount,
+  //     description: 'Withdrawal request',
+  //     transactionType: TransactionType.DEBIT,
+  //     category: TransactionCategoryEnum.GENERAL,
+  //     withdrawalId: withdrawal._id.toString(),
+  //   });
+  //   console.log('response:', response);
+
+  //   try {
+  //     // 3. Call Paystack
+  //     const paystackResponse = await this.paystackService.creditUserBankAccount(
+  //       {
+  //         bankName: userAccount.bankName,
+  //         accountNumber: userAccount.accountNumber,
+  //         accountName: userAccount.accountName,
+  //         recipientCode: userAccount.transferRecipientCode,
+  //         amount: dto.amount,
+  //         walletId: wallet._id.toString(),
+  //         reference,
+  //       },
+  //     );
+  //     console.log('paystackResponse:', paystackResponse);
+
+  //     const updatedWithdrawalStatus = await this.withdrawalsRepo.updateStatus(
+  //       reference,
+  //       {
+  //         status: WithdrawalStatus.PROCESSING,
+  //         providerReference: paystackResponse.reference,
+  //         metadata: response,
+  //       },
+  //     );
+  //     console.log('updatedWithdrawalStatus:', updatedWithdrawalStatus);
+
+  //     return {
+  //       message: 'Withdrawal initiated',
+  //     };
+  //   } catch (error: any) {
+  //     // rollback
+  //     wallet.balance += dto.amount;
+  //     await wallet.save();
+
+  //     await this.withdrawalsRepo.updateStatus(reference, {
+  //       status: WithdrawalStatus.FAILED,
+  //       failureReason: error.message,
+  //     });
+
+  //     throw new BadRequestException('Transfer failed');
+  //   }
+  // }
+
   async requestWithdrawal(user: JwtUser, dto: RequestWithdrawalDto) {
     const session = await this.connection.startSession();
     session.startTransaction();
 
-    const wallet = await this.walletsRepo.findWalletById(dto.walletId);
-
-    if (!wallet || wallet.balance < dto.amount) {
-      throw new BadRequestException({
-        message: 'Insufficient balance',
-        success: false,
-        status: 400,
-      });
-    }
-
+    let withdrawal: any;
+    let wallet: any;
     const id = user.sub.toString();
 
-    const userAccount = await this.accountsService.getUserAccount(user, id);
-
-    const payload = {
-      userId: id,
-      plan: 'BANK_WITHDRAWAL',
-    };
-
-    const reference = generatePaymentReference(payload, 'WITHDRAWAL');
-
-    // 1. Create withdrawal record
-    const withdrawal = await this.withdrawalsRepo.createWithdrawalDocument({
-      userId: new Types.ObjectId(id),
-      walletId: wallet._id,
-      amount: dto.amount,
-      reference,
-      recipientCode: userAccount.transferRecipientCode,
-      status: WithdrawalStatus.PENDING,
-    });
-
-    console.log('withdrawal:', withdrawal);
-
-    // 2. Debit wallet
-    wallet.balance -= dto.amount;
-    await wallet.save();
-
-    const response = await this.transactionsRepo.createTransaction({
-      walletId: wallet._id.toString(),
-      amount: dto.amount,
-      description: 'Withdrawal request',
-      transactionType: TransactionType.DEBIT,
-      category: TransactionCategoryEnum.GENERAL,
-      withdrawalId: withdrawal._id.toString(),
-    });
-    console.log('response:', response);
-
     try {
-      // 3. Call Paystack
+      // Fetch wallet WITH session
+      wallet = await this.walletsRepo.findWalletByIdWithSession(
+        dto.walletId,
+        session,
+      );
+
+      if (!wallet || wallet.balance < dto.amount) {
+        throw new BadRequestException('Insufficient balance');
+      }
+
+      const userAccount = await this.accountsService.getUserAccountWithSession(
+        user,
+        id,
+        session,
+      );
+
+      const reference = generatePaymentReference(
+        { userId: id, plan: 'BANK_WITHDRAWAL' },
+        'WITHDRAWAL',
+      );
+
+      // Create withdrawal
+      withdrawal =
+        await this.withdrawalsRepo.createWithdrawalDocumentWithSession(
+          {
+            userId: new Types.ObjectId(id),
+            walletId: wallet._id,
+            amount: dto.amount,
+            reference,
+            recipientCode: userAccount.transferRecipientCode,
+            status: WithdrawalStatus.PENDING,
+          },
+          session,
+        );
+
+      // Debit wallet
+      wallet.balance -= dto.amount;
+      await wallet.save({ session });
+
+      // Create transaction log
+      const transaction =
+        await this.transactionsRepo.createTransactionWithSession(
+          {
+            walletId: wallet._id.toString(),
+            amount: dto.amount,
+            description: 'Withdrawal request',
+            transactionType: TransactionType.DEBIT,
+            category: TransactionCategoryEnum.GENERAL,
+            withdrawalId: withdrawal._id.toString(),
+          },
+          session,
+        );
+
+      // COMMIT FIRST (CRITICAL)
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+
+    // 🚀 PHASE 2: Call Paystack OUTSIDE transaction
+    try {
+      const userAccount = await this.accountsService.getUserAccount(user, id);
+
       const paystackResponse = await this.paystackService.creditUserBankAccount(
         {
           bankName: userAccount.bankName,
@@ -87,33 +203,56 @@ export class WithdrawalsService {
           recipientCode: userAccount.transferRecipientCode,
           amount: dto.amount,
           walletId: wallet._id.toString(),
-          reference,
+          reference: withdrawal.reference,
+          type: WebhookProcessionTransactionType.WITHDRAWAL,
         },
       );
-      console.log('paystackResponse:', paystackResponse);
 
-      const updatedWithdrawalStatus = await this.withdrawalsRepo.updateStatus(
-        reference,
+      // ✅ Update to PROCESSING
+      const updatedStatus = await this.withdrawalsRepo.updateStatus(
+        withdrawal.reference,
         {
           status: WithdrawalStatus.PROCESSING,
           providerReference: paystackResponse.reference,
-          metadata: response,
+          metadata: paystackResponse,
         },
       );
-      console.log('updatedWithdrawalStatus:', updatedWithdrawalStatus);
+
+      console.log('updatedStatus:', updatedStatus);
 
       return {
         message: 'Withdrawal initiated',
       };
     } catch (error: any) {
-      // rollback
-      wallet.balance += dto.amount;
-      await wallet.save();
+      // Paystack failed → COMPENSATING ACTION
+      const session2 = await this.connection.startSession();
+      session2.startTransaction();
 
-      await this.withdrawalsRepo.updateStatus(reference, {
-        status: WithdrawalStatus.FAILED,
-        failureReason: error.message,
-      });
+      try {
+        // 1️⃣ Mark withdrawal FAILED
+        await this.withdrawalsRepo.updateStatusWithSession(
+          withdrawal.reference,
+          {
+            status: WithdrawalStatus.FAILED,
+            failureReason: error.message,
+          },
+          session2,
+        );
+
+        // 2️⃣ Refund wallet
+        await this.walletsRepo.creditUserWallet(
+          withdrawal.userId,
+          withdrawal.amount,
+          session2,
+        );
+
+        await session2.commitTransaction();
+      } catch (err) {
+        await session2.abortTransaction();
+        throw err;
+      } finally {
+        session2.endSession();
+      }
 
       throw new BadRequestException('Transfer failed');
     }

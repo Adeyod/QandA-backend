@@ -14,6 +14,14 @@ export class WithdrawalsRepository {
     private withdrawalModel: Model<WithdrawalDocument>,
   ) {}
 
+  async createWithdrawalDocumentWithSession(
+    data: Partial<Withdrawal>,
+    session: ClientSession,
+  ) {
+    const response = await new this.withdrawalModel(data).save({ session });
+
+    return response;
+  }
   async createWithdrawalDocument(data: Partial<Withdrawal>) {
     const response = await new this.withdrawalModel(data).save();
 
@@ -47,8 +55,29 @@ export class WithdrawalsRepository {
     const response = await this.withdrawalModel.findOneAndUpdate(
       { reference },
       { status, providerReference, metadata },
-      { new: true },
+      { returnDocument: 'after' },
     );
+    return response;
+  }
+  async updateStatusWithSession(
+    reference: string,
+    payload: {
+      status: WithdrawalStatus;
+      providerReference?: string;
+      metadata?: any;
+      failureReason?: string;
+    },
+    session: ClientSession,
+  ) {
+    const { status, providerReference, metadata } = payload;
+
+    const response = await this.withdrawalModel
+      .findOneAndUpdate(
+        { reference },
+        { status, providerReference, metadata },
+        { returnDocument: 'after' },
+      )
+      .session(session);
     return response;
   }
 }

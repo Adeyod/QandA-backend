@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { UsersRepository } from '../../../../modules/users/repositories/users.repository';
 import { WalletsRepository } from '../../../../modules/wallets/repositories/wallets.repository';
 import { PaymentsRepository } from '../../repositories/payment.repository';
+import { WebhookProcessionTransactionType } from '../../schemas/payment.schema';
 import {
   IPaymentProvider,
   PaymentInitializationPayload,
@@ -102,6 +103,7 @@ export class PaystackService implements IPaymentProvider {
     amount: number;
     walletId: string;
     reference: string;
+    type: WebhookProcessionTransactionType;
   }) {
     const {
       accountNumber,
@@ -110,6 +112,7 @@ export class PaystackService implements IPaymentProvider {
       amount,
       walletId,
       reference,
+      type,
     } = payload;
 
     // 2. Convert to kobo
@@ -127,6 +130,7 @@ export class PaystackService implements IPaymentProvider {
         accountNumber,
         accountName,
         walletId,
+        type,
       },
       {
         headers: {
@@ -134,6 +138,10 @@ export class PaystackService implements IPaymentProvider {
         },
       },
     );
+
+    console.log('response:', response);
+    console.log('response.data:', response.data);
+    console.log('response.data.data:', response.data.data);
 
     return response.data.data;
   }

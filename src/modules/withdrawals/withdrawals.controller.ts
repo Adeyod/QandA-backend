@@ -29,7 +29,7 @@ export class WithdrawalsController {
   @SuccessMessage('Withdrawal request submitted successfully.')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Get all payments for a user.',
+    summary: 'User withdrawal money to their local bank account.',
     description: 'This is the endpoint for submitting withdrawal request.',
   })
   @ApiResponse({

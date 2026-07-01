@@ -143,7 +143,7 @@ export class SubjectsRepository {
       subjectId,
       { $addToSet: { plans: plan } },
       {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
       },
     );
