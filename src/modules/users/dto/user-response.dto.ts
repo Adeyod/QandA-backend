@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Types } from 'mongoose';
-import { Role } from '../schemas/user.schema';
+import { Plan, Role } from '../schemas/user.schema';
 
 export class UserResponseDto {
   @ApiProperty({
@@ -56,6 +56,12 @@ export class UserResponseDto {
     example: 'AT-304958',
   })
   referralCode!: string;
+
+  @ApiProperty({
+    description: 'Payment plan that the student subscribed to.',
+    example: Plan.SECONDARY,
+  })
+  plans!: Plan[];
 
   @ApiProperty({
     description: 'The person that referred this user',
