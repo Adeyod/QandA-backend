@@ -55,13 +55,13 @@ export class AuthService {
       });
     }
 
-    const hashed = await this.passwordHashing(password);
+    const hashed = await this.passwordHashing(password.trim());
 
     const payload = {
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
+      firstName: firstName.toLowerCase().trim(),
+      lastName: lastName.toLowerCase().trim(),
+      email: email.toLowerCase().trim(),
+      phoneNumber: phoneNumber.trim(),
       password: hashed,
       referredBy: referredBy && referredBy,
     };
