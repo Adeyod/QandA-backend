@@ -43,3 +43,18 @@ export const generatePaymentReference = (
 
   return ref;
 };
+
+export function addDays(date: Date, days: number): Date {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    throw new Error('Invalid date');
+  }
+
+  if (typeof days !== 'number') {
+    throw new Error('Days must be a number');
+  }
+
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+
+  return result;
+}

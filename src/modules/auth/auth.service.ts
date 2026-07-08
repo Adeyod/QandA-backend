@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -12,6 +13,7 @@ import { Request } from 'express';
 import { Model, Types } from 'mongoose';
 import { JwtUser } from '../../common/types/jwt-user.type';
 import { generateCode } from '../../common/utils/code';
+import { addDays } from '../../common/utils/helper';
 import { MailService } from '../../mail/mail.service';
 import { RefreshTokensService } from '../refresh-tokens/refresh-tokens.service';
 import { TokensRepository } from '../tokens/repositories/tokens.repository';
@@ -190,6 +192,22 @@ export class AuthService {
       });
     }
 
+    const now = new Date();
+
+    if (user.lastForcedSwitchAt) {
+      const lastSwitch = user.lastForcedSwitchAt;
+
+      const nextAllowedSwitchDate = addDays(lastSwitch, 90);
+
+      if (new Date() < nextAllowedSwitchDate) {
+        throw new ForbiddenException({
+          message: `You can switch again on ${nextAllowedSwitchDate.toDateString()}`,
+          success: false,
+          status: 403,
+        });
+      }
+    }
+
     const payload = {
       userId: user._id.toString(),
       deviceId,
@@ -223,6 +241,9 @@ export class AuthService {
     }
 
     const { password: _password, ...others } = user.toObject();
+
+    user.lastForcedSwitchAt = new Date();
+    await user.save();
 
     const session = newSession;
     return {

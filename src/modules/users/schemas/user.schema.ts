@@ -67,6 +67,9 @@ export class User {
   @Prop({ default: false })
   hasPaid!: boolean;
 
+  @Prop({})
+  lastForcedSwitchAt!: Date;
+
   @Prop({
     type: [String],
     enum: Plan,
