@@ -15,6 +15,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
@@ -27,7 +28,7 @@ export class AccountsController {
   constructor(private accountsService: AccountsService) {}
 
   @Post('create-account')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Account created successfully.')
@@ -58,7 +59,7 @@ export class AccountsController {
   }
 
   @Get('get-user-account/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Account fetched successfully.')
@@ -88,7 +89,7 @@ export class AccountsController {
   }
 
   @Get('resolve-bank-account-details/:bankCode/:accountNumber')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Account fetched successfully.')
@@ -124,7 +125,7 @@ export class AccountsController {
   }
 
   @Get('get-bank-codes')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Bank codes fetched successfully.')
@@ -153,7 +154,7 @@ export class AccountsController {
   }
 
   @Get('get-all-accounts')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('All accounts fetched successfully.')

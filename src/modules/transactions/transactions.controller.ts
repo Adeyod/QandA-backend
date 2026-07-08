@@ -13,6 +13,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
@@ -24,7 +25,7 @@ export class TransactionsController {
   constructor(private transactionsService: TransactionsService) {}
 
   @Get('get-all-transactions-with-userId/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage("User's Transactions fetched successfully.")
@@ -67,7 +68,7 @@ export class TransactionsController {
   }
 
   @Get('get-all-transactions')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('All Transactions fetched successfully.')
@@ -105,7 +106,7 @@ export class TransactionsController {
   }
 
   @Get('get-transaction-by-id/:transactionId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Transaction fetched successfully.')

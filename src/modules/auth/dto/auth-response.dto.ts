@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { Role } from '../../../modules/users/schemas/user.schema';
 import { WalletResponseDto } from '../../../modules/wallets/dto/wallet-response.dto';
+import { SessionResponseDto } from '../../user-session/dtos/session-response.dto';
 
 export class AuthResponseDto {
   @ApiProperty({
@@ -17,6 +18,9 @@ export class AuthResponseDto {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YzY3MDY1OC1kZTdlLTQ2ODctYmE0Mi1hY2EzMTZkZjc4NGUiLCJlbWFpbCI6ImF5b2RlamlhZGVib2x1QGdtYWlsLmNvbSIsImlhdCI6MTc3MDQwNjQ2MSwiZXhwIjoxNzcwNDA3MzYxfQ.1yOgYaxC_0czQF_aaYOYx4s064FHUWZR3R9ZKfDuAvQ',
   })
   refreshToken!: string;
+
+  @ApiProperty({})
+  session!: SessionResponseDto;
 
   @ApiProperty({
     description: 'Authenticated User information',

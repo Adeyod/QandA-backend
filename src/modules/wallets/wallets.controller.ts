@@ -11,6 +11,7 @@ import { GetCurrentUser } from '../../common/decorators/get-current-user.decorat
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
@@ -22,7 +23,7 @@ export class WalletsController {
   constructor(private readonly walletsService: WalletsService) {}
 
   @Get('get-wallet-by-userId/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Wallet fetched successfully.')
@@ -55,7 +56,7 @@ export class WalletsController {
   }
 
   @Get('get-wallet-by-walletId/:walletId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Wallet fetched successfully.')
@@ -126,7 +127,7 @@ export class WalletsController {
   // }
 
   @Get('get-wallet-balance-by-walletId/:walletId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Wallet balance fetched successfully.')

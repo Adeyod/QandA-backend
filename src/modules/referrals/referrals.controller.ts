@@ -11,6 +11,7 @@ import { GetCurrentUser } from '../../common/decorators/get-current-user.decorat
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
@@ -22,7 +23,7 @@ export class ReferralsController {
   constructor(private referralsService: ReferralsService) {}
 
   @Get('stats/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('User referral statistics fetched successfully.')
@@ -55,7 +56,7 @@ export class ReferralsController {
   }
 
   @Get('network/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('User referral network statistics fetched successfully.')
@@ -88,7 +89,7 @@ export class ReferralsController {
   }
 
   @Get('network/paid/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('User referral network statistics fetched successfully.')
@@ -115,7 +116,10 @@ export class ReferralsController {
     @Param('userId') userId: string,
     @GetCurrentUser() user: JwtUser,
   ) {
-    const res = await this.referralsService.getPaidAndUnpaidReferrals(userId, user);
+    const res = await this.referralsService.getPaidAndUnpaidReferrals(
+      userId,
+      user,
+    );
     console.log('res:', res);
     return res;
   }

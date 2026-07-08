@@ -14,6 +14,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
@@ -25,7 +26,7 @@ import { PaymentProvider } from './schemas/payment.schema';
 export class PaymentsController {
   constructor(private paymentsService: PaymentsService) {}
   @Post('create-payment-intent/:provider/:plan')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Payment intent successfully created.')
@@ -57,7 +58,7 @@ export class PaymentsController {
   }
 
   @Get('get-all-user-payments/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('All payments of this user fetched successfully.')
@@ -92,7 +93,7 @@ export class PaymentsController {
   }
 
   @Get('get-all-payments')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('All payments fetched successfully.')
@@ -126,7 +127,7 @@ export class PaymentsController {
   }
 
   @Get('verify-payment/:reference')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Payment status fetched successfully.')
   @HttpCode(HttpStatus.OK)

@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AccountsModule } from '../accounts/accounts.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { TransactionsModule } from '../transactions/transactions.module';
+import { UserSessionModule } from '../user-session/user-session.module';
 import { WalletsModule } from '../wallets/wallets.module';
 import { WithdrawalsRepository } from './repositories/withdrawals.repository';
 import { Withdrawal, WithdrawalSchema } from './schemas/withdrawal.schema';
@@ -14,6 +15,7 @@ import { WithdrawalsService } from './withdrawals.service';
     MongooseModule.forFeature([
       { name: Withdrawal.name, schema: WithdrawalSchema },
     ]),
+    UserSessionModule,
     PaymentsModule,
     WalletsModule,
     TransactionsModule,

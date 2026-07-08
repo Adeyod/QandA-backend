@@ -19,6 +19,7 @@ import type { Request } from 'express';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
 import { AuthService } from './auth.service';
@@ -115,6 +116,31 @@ export class AuthController {
     return await this.authService.loginUser(loginDto);
   }
 
+  @Post('force-switch')
+  @SuccessMessage('User force switch successful')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'User forced switch',
+    description:
+      'User forced switch. The initial user session on the previous device will be invalidated and new one is created for the new device.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User force switch successful',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'User force switch failed',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async forceSwitch(@Body() loginDto: LoginDto) {
+    return await this.authService.forceSwitch(loginDto);
+  }
+
   @Post('forgot-password')
   @SuccessMessage(
     'Please use the token sent to your email address to reset your password.',
@@ -143,7 +169,7 @@ export class AuthController {
   }
 
   @Post('request-access-token')
-  @UseGuards(RefreshTokenGuard)
+  @UseGuards(RefreshTokenGuard, DeviceSessionGuard)
   @ApiBearerAuth('JWT-refresh')
   @SuccessMessage('Access token generated successfully')
   @HttpCode(HttpStatus.OK)
@@ -227,7 +253,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
     name: 'x-refresh-token',

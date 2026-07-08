@@ -11,6 +11,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PlansGuard } from '../../common/guards/plans.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -23,7 +24,7 @@ export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
   @Get('get-question-by-id/:questionId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard)
   @SuccessMessage('Question fetched successfully.')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
@@ -49,7 +50,7 @@ export class QuestionsController {
   }
 
   @Get('count-questions-by-subjectId/:subjectId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
@@ -77,7 +78,7 @@ export class QuestionsController {
   }
 
   @Get('count-questions-by-subjectId-and-year/:subjectId/:year')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage(
@@ -114,7 +115,7 @@ export class QuestionsController {
   }
 
   @Get('summary')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Question summary data fetched successfully')
@@ -146,7 +147,7 @@ export class QuestionsController {
   }
 
   @Get('free-questions-per-plan')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Questions fetched successfully')
@@ -173,7 +174,7 @@ export class QuestionsController {
     return await this.questionsService.getFreeQuestionsPerPlan(getQuestionsDto);
   }
   @Get('paid-questions-per-plan')
-  @UseGuards(JwtAuthGuard, RolesGuard, PlansGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard, PlansGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Questions fetched successfully')

@@ -33,4 +33,18 @@ export class LoginDto {
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   })
   password!: string;
+
+  @ApiProperty({
+    description: 'This is the ID of the device of the user.',
+    example: '394ir-84736e5362-yw7qy3i38',
+  })
+  @IsString()
+  deviceId!: string;
+
+  @ApiProperty({
+    description: 'This is the name of the device of the user',
+    example: 'iPhone 12 Promax',
+  })
+  @IsString()
+  deviceName!: string;
 }

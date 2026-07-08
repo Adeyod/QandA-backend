@@ -20,6 +20,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
+import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Plan, Role } from '../users/schemas/user.schema';
@@ -32,7 +33,7 @@ import { SubjectsService } from './subjects.service';
 export class SubjectsController {
   constructor(private subjectsService: SubjectsService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @Post('create-subject')
@@ -65,7 +66,7 @@ export class SubjectsController {
   }
 
   @Get('get-all-subjects')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Subjects fetched successfully.')
@@ -103,7 +104,7 @@ export class SubjectsController {
     return await this.subjectsService.getAllSubjects(queryWithPaginationDto);
   }
   @Get('get-all-subjects-per-category/:plan')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage(
