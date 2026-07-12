@@ -6,7 +6,12 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
@@ -23,9 +28,15 @@ export class WalletsController {
   constructor(private readonly walletsService: WalletsService) {}
 
   @Get('get-wallet-by-userId/:userId')
-  @UseGuards(JwtAuthGuard, DeviceSessionGuard, DeviceSessionGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Wallet fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -59,6 +70,12 @@ export class WalletsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Wallet fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -130,6 +147,12 @@ export class WalletsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Wallet balance fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

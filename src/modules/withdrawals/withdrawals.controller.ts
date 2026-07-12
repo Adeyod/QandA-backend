@@ -6,7 +6,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
@@ -27,6 +32,12 @@ export class WithdrawalsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Withdrawal request submitted successfully.')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({

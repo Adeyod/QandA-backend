@@ -33,9 +33,11 @@ export class DeviceSessionGuard implements CanActivate {
       });
     }
 
-    const session = await this.userSessionService.findActiveSession(
-      user.userId,
-    );
+    console.log('device section user:', user);
+
+    const userId = user.sub.toString();
+
+    const session = await this.userSessionService.findActiveSession(userId);
 
     if (!session) {
       throw new UnauthorizedException({
@@ -44,6 +46,8 @@ export class DeviceSessionGuard implements CanActivate {
         status: 401,
       });
     }
+    console.log('device section session:', session);
+    console.log('device section session.deviceId:', session.deviceId);
 
     if (session.deviceId !== deviceId) {
       throw new UnauthorizedException({

@@ -7,7 +7,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
@@ -28,6 +33,12 @@ export class TransactionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage("User's Transactions fetched successfully.")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -71,6 +82,12 @@ export class TransactionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('All Transactions fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -109,6 +126,12 @@ export class TransactionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Transaction fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

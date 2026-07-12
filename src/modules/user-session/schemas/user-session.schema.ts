@@ -1,13 +1,13 @@
 // user-session.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type UserSessionDocument = UserSession & Document;
 
 @Schema({ timestamps: true })
 export class UserSession {
-  @Prop({ required: true, index: true })
-  userId!: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  userId!: Types.ObjectId;
 
   @Prop({ required: true })
   deviceId!: string;

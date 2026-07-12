@@ -171,6 +171,12 @@ export class AuthController {
   @Post('request-access-token')
   @UseGuards(RefreshTokenGuard, DeviceSessionGuard)
   @ApiBearerAuth('JWT-refresh')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Access token generated successfully')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

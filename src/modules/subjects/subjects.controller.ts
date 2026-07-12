@@ -12,6 +12,7 @@ import {
 import {
   ApiBearerAuth,
   ApiExtraModels,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   getSchemaPath,
@@ -36,6 +37,12 @@ export class SubjectsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @Post('create-subject')
   @SuccessMessage('Subject created successfully.')
   @HttpCode(HttpStatus.CREATED)
@@ -69,6 +76,12 @@ export class SubjectsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Subjects fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -107,6 +120,12 @@ export class SubjectsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage(
     'Subjects For the selected category(Plan) fetched successfully.',
   )

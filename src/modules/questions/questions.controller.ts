@@ -7,7 +7,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
@@ -27,6 +32,12 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard)
   @SuccessMessage('Question fetched successfully.')
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @ApiOperation({
     summary: 'This is the endpoint for fetching a question by the questionId',
     description:
@@ -53,6 +64,12 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @ApiOperation({
     summary:
       'This gives response as to the number of questions we have for a subject',
@@ -81,6 +98,12 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage(
     'Question summary fetched successfully for this subject for the year.',
   )
@@ -118,6 +141,12 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Question summary data fetched successfully')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -150,6 +179,12 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Questions fetched successfully')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -177,6 +212,12 @@ export class QuestionsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard, PlansGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Questions fetched successfully')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

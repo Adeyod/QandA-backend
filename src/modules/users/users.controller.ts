@@ -7,7 +7,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -29,6 +34,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('User details fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

@@ -8,7 +8,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
@@ -29,6 +34,12 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Payment intent successfully created.')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -61,6 +72,12 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.USER, Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('All payments of this user fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -96,6 +113,12 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('All payments fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -129,6 +152,12 @@ export class PaymentsController {
   @Get('verify-payment/:reference')
   @UseGuards(JwtAuthGuard, DeviceSessionGuard)
   @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
   @SuccessMessage('Payment status fetched successfully.')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

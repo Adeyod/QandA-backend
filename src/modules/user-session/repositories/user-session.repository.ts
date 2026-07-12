@@ -1,7 +1,7 @@
 // user-session.repository.ts
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   UserSession,
   UserSessionDocument,
@@ -14,7 +14,7 @@ export class UserSessionRepository {
     private sessionModel: Model<UserSessionDocument>,
   ) {}
 
-  async findActiveSession(userId: string) {
+  async findActiveSession(userId: Types.ObjectId) {
     const response = await this.sessionModel.findOne({
       userId,
       isActive: true,
@@ -34,7 +34,7 @@ export class UserSessionRepository {
   }
 
   async createSession(data: Partial<UserSession>) {
-    const response = await this.sessionModel.create(data);
+    const response = await new this.sessionModel(data).save();
 
     console.log('createSession response:', response);
 
@@ -51,7 +51,7 @@ export class UserSessionRepository {
     return response;
   }
 
-  async deactivateSessions(userId: string) {
+  async deactivateSessions(userId: Types.ObjectId) {
     const response = await this.sessionModel.updateMany(
       { userId, isActive: true },
       { isActive: false },

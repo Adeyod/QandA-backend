@@ -4,6 +4,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { CreateSessionDto } from './dtos/create-session.dto';
 import { ForceSwitchDto } from './dtos/force-switch.dto';
 import { UserSessionRepository } from './repositories/user-session.repository';
@@ -13,14 +14,22 @@ export class UserSessionService {
   constructor(private readonly repo: UserSessionRepository) {}
 
   async findActiveSession(userId: string) {
-    const response = await this.repo.findActiveSession(userId);
+    const response = await this.repo.findActiveSession(
+      new Types.ObjectId(userId),
+    );
 
     return response;
   }
 
   async createSession(dto: CreateSessionDto) {
+    const payload = {
+      userId: new Types.ObjectId(dto.userId),
+      deviceId: dto.deviceId,
+      deviceName: dto.deviceName,
+    };
+
     const response = await this.repo.createSession({
-      ...dto,
+      ...payload,
       isActive: true,
       lastActiveAt: new Date(),
     });
@@ -46,13 +55,19 @@ export class UserSessionService {
 
   async handleLogin(dto: CreateSessionDto) {
     console.log('dto:', dto);
-    const activeSession = await this.repo.findActiveSession(dto.userId);
+    const payload = {
+      userId: new Types.ObjectId(dto.userId),
+      deviceId: dto.deviceId,
+      deviceName: dto.deviceName,
+    };
+
+    const activeSession = await this.repo.findActiveSession(payload.userId);
     console.log('activeSession:', activeSession);
 
     // No active session
     if (!activeSession) {
       return this.repo.createSession({
-        ...dto,
+        ...payload,
         isActive: true,
         lastActiveAt: new Date(),
       });
@@ -80,12 +95,18 @@ export class UserSessionService {
   }
 
   async forceSwitch(dto: ForceSwitchDto) {
+    const payload = {
+      userId: new Types.ObjectId(dto.userId),
+      deviceId: dto.deviceId,
+      deviceName: dto.deviceName,
+    };
+
     // Deactivate all sessions
-    await this.repo.deactivateSessions(dto.userId);
+    await this.repo.deactivateSessions(payload.userId);
 
     // Create new session
     return this.repo.createSession({
-      ...dto,
+      ...payload,
       isActive: true,
       lastActiveAt: new Date(),
       lastSwitchAt: new Date(),
