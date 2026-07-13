@@ -321,12 +321,14 @@ export class AuthService {
       const userId = user._id.toString();
 
       let session;
+      const role = user.role;
 
       try {
         session = await this.userSessionService.handleLogin({
           userId,
           deviceId,
           deviceName,
+          role,
         });
       } catch (err) {
         if (err instanceof ConflictException) {

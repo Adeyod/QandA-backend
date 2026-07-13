@@ -15,7 +15,7 @@ export class UserSessionRepository {
   ) {}
 
   async findActiveSession(userId: Types.ObjectId) {
-    const response = await this.sessionModel.findOne({
+    const response = await this.sessionModel.find({
       userId,
       isActive: true,
     });
@@ -25,7 +25,7 @@ export class UserSessionRepository {
     return response;
   }
 
-  async findByUserAndDevice(userId: string, deviceId: string) {
+  async findByUserAndDevice(userId: Types.ObjectId, deviceId: string) {
     const response = await this.sessionModel.findOne({ userId, deviceId });
 
     console.log('findByUserAndDevice response:', response);

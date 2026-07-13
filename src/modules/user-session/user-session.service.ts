@@ -5,6 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { Role } from '../users/schemas/user.schema';
 import { CreateSessionDto } from './dtos/create-session.dto';
 import { ForceSwitchDto } from './dtos/force-switch.dto';
 import { UserSessionRepository } from './repositories/user-session.repository';
@@ -17,6 +18,13 @@ export class UserSessionService {
     const response = await this.repo.findActiveSession(
       new Types.ObjectId(userId),
     );
+
+    return response;
+  }
+  async findByUserAndDevice(userId: string, deviceId: string) {
+    const id = new Types.ObjectId(userId);
+
+    const response = await this.repo.findByUserAndDevice(id, deviceId);
 
     return response;
   }
@@ -53,6 +61,57 @@ export class UserSessionService {
     return response;
   }
 
+  // async handleLogin(dto: CreateSessionDto) {
+  //   console.log('dto:', dto);
+  //   const payload = {
+  //     userId: new Types.ObjectId(dto.userId),
+  //     deviceId: dto.deviceId,
+  //     deviceName: dto.deviceName,
+  //   };
+
+  //   const activeSession = await this.repo.findByUserAndDevice(
+  //     payload.userId,
+  //     payload.deviceId,
+  //   );
+  //   console.log('activeSession:', activeSession);
+
+  //   if (dto.role === Role.ADMIN) {
+  //     return this.repo.createSession({
+  //       ...payload,
+  //       isActive: true,
+  //       lastActiveAt: new Date(),
+  //     });
+  //   }
+
+  //   // No active session
+  //   if (!activeSession) {
+  //     return this.repo.createSession({
+  //       ...payload,
+  //       isActive: true,
+  //       lastActiveAt: new Date(),
+  //     });
+  //   }
+
+  //   // Same device
+  //   if (activeSession.deviceId === dto.deviceId) {
+  //     const response = await this.repo.updateSession(
+  //       activeSession._id.toString(),
+  //       {
+  //         lastActiveAt: new Date(),
+  //       },
+  //     );
+  //     console.log('response:', response);
+
+  //     return response;
+  //   }
+
+  //   // Different device
+  //   throw new ConflictException({
+  //     message: 'You are logged in on another device',
+  //     action: 'FORCE_SWITCH_REQUIRED',
+  //     currentDevice: activeSession.deviceName, // nice UX addition
+  //   });
+  // }
   async handleLogin(dto: CreateSessionDto) {
     console.log('dto:', dto);
     const payload = {
@@ -61,11 +120,20 @@ export class UserSessionService {
       deviceName: dto.deviceName,
     };
 
-    const activeSession = await this.repo.findActiveSession(payload.userId);
-    console.log('activeSession:', activeSession);
+    const existingSession = await this.repo.findByUserAndDevice(
+      payload.userId,
+      payload.deviceId,
+    );
+    console.log('existingSession:', existingSession);
 
-    // No active session
-    if (!activeSession) {
+    if (existingSession) {
+      return this.repo.updateSession(existingSession._id.toString(), {
+        lastActiveAt: new Date(),
+        isActive: true,
+      });
+    }
+
+    if (dto.role === Role.ADMIN) {
       return this.repo.createSession({
         ...payload,
         isActive: true,
@@ -73,24 +141,21 @@ export class UserSessionService {
       });
     }
 
-    // Same device
-    if (activeSession.deviceId === dto.deviceId) {
-      const response = await this.repo.updateSession(
-        activeSession._id.toString(),
-        {
-          lastActiveAt: new Date(),
-        },
-      );
-      console.log('response:', response);
+    const activeSessions = await this.repo.findActiveSession(payload.userId);
 
-      return response;
+    // No active session
+    if (activeSessions.length > 0) {
+      throw new ConflictException({
+        message: 'You are logged in on another device',
+        action: 'FORCE_SWITCH_REQUIRED',
+        currentDevice: activeSessions[0].deviceName,
+      });
     }
 
-    // Different device
-    throw new ConflictException({
-      message: 'You are logged in on another device',
-      action: 'FORCE_SWITCH_REQUIRED',
-      currentDevice: activeSession.deviceName, // nice UX addition
+    return this.repo.createSession({
+      ...payload,
+      isActive: true,
+      lastActiveAt: new Date(),
     });
   }
 

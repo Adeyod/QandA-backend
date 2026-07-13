@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserSessionService } from '../../modules/user-session/user-session.service';
+import { Role } from '../../modules/users/schemas/user.schema';
 
 @Injectable()
 export class DeviceSessionGuard implements CanActivate {
@@ -12,16 +13,6 @@ export class DeviceSessionGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-
-    const deviceId = request.headers['x-device-id'];
-
-    if (!deviceId) {
-      throw new UnauthorizedException({
-        message: 'Device ID is required',
-        success: false,
-        status: 401,
-      });
-    }
 
     const user = request.user;
 
@@ -33,11 +24,26 @@ export class DeviceSessionGuard implements CanActivate {
       });
     }
 
-    console.log('device section user:', user);
+    if (user.role === Role.ADMIN) {
+      return true;
+    }
+
+    const deviceId = request.headers['x-device-id'];
+
+    if (!deviceId) {
+      throw new UnauthorizedException({
+        message: 'Device ID is required',
+        success: false,
+        status: 401,
+      });
+    }
 
     const userId = user.sub.toString();
 
-    const session = await this.userSessionService.findActiveSession(userId);
+    const session = await this.userSessionService.findByUserAndDevice(
+      userId,
+      deviceId,
+    );
 
     if (!session) {
       throw new UnauthorizedException({
@@ -46,8 +52,6 @@ export class DeviceSessionGuard implements CanActivate {
         status: 401,
       });
     }
-    console.log('device section session:', session);
-    console.log('device section session.deviceId:', session.deviceId);
 
     if (session.deviceId !== deviceId) {
       throw new UnauthorizedException({
