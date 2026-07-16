@@ -330,38 +330,103 @@ export class QuestionsRepository {
     return result;
   }
 
-  async insertQuestions(questions: any[]) {
-    if (!questions || questions.length === 0) return;
+  // async insertQuestions(questions: any[]) {
+  //   if (!questions || questions.length === 0) return;
 
-    // Normalize questions and remove any with undefined ID
+  //   // Normalize questions and remove any with undefined ID
+  //   const validQuestions = questions.filter(
+  //     (q) => q.apiQuestionId && q.apiSubjectName,
+  //   );
+  //   if (validQuestions.length === 0) return;
+
+  //   // Remove duplicates inside this batch
+  //   const uniqueMap = new Map<string, any>();
+  //   validQuestions.forEach((q) => {
+  //     const key = `${q.apiQuestionId}_${q.apiSubjectName}`;
+  //     if (!uniqueMap.has(key)) {
+  //       uniqueMap.set(key, q);
+  //     }
+  //   });
+  //   const uniqueQuestions = Array.from(uniqueMap.values());
+
+  //   console.log('uniqueQuestions:', uniqueQuestions);
+  //   if (uniqueQuestions.length === 0) return;
+
+  //   try {
+  //     const compoundKeys = uniqueQuestions.map((q) => ({
+  //       apiQuestionId: q.apiQuestionId,
+  //       apiSubjectName: q.apiSubjectName,
+  //     }));
+
+  //     const existing = await this.questionModel
+  //       .find({
+  //         $or: compoundKeys,
+  //       })
+  //       .select('apiQuestionId apiSubjectName')
+  //       .lean();
+
+  //     const existingSet = new Set(
+  //       existing.map((q) => `${q.apiQuestionId}_${q.apiSubjectName}`),
+  //     );
+
+  //     const newQuestions = uniqueQuestions.filter(
+  //       (q) => !existingSet.has(`${q.apiQuestionId}_${q.apiSubjectName}`),
+  //     );
+
+  //     if (newQuestions.length === 0) return;
+
+  //     console.log('newQuestions:', newQuestions);
+
+  //     const res = await this.questionModel.insertMany(newQuestions);
+  //     console.log('res:', res);
+  //   } catch (error: any) {
+  //     if (error.code === 11000) {
+  //       console.warn('Duplicate questions skipped.');
+  //     } else {
+  //       throw error;
+  //     }
+  //   }
+  // }
+
+  async insertQuestions(questions: any[]) {
+    if (!questions?.length) {
+      return { inserted: 0, skipped: 0 };
+    }
+
+    // ✅ 1. Validate required fields
     const validQuestions = questions.filter(
       (q) => q.apiQuestionId && q.apiSubjectName,
     );
-    if (validQuestions.length === 0) return;
 
-    // Remove duplicates inside this batch
+    if (!validQuestions.length) {
+      return { inserted: 0, skipped: questions.length };
+    }
+
+    // ✅ 2. Remove duplicates inside request batch
     const uniqueMap = new Map<string, any>();
-    validQuestions.forEach((q) => {
+
+    for (const q of validQuestions) {
       const key = `${q.apiQuestionId}_${q.apiSubjectName}`;
       if (!uniqueMap.has(key)) {
         uniqueMap.set(key, q);
       }
-    });
+    }
+
     const uniqueQuestions = Array.from(uniqueMap.values());
 
-    console.log('uniqueQuestions:', uniqueQuestions);
-    if (uniqueQuestions.length === 0) return;
+    if (!uniqueQuestions.length) {
+      return { inserted: 0, skipped: validQuestions.length };
+    }
 
     try {
+      // ✅ 3. Check existing in DB
       const compoundKeys = uniqueQuestions.map((q) => ({
         apiQuestionId: q.apiQuestionId,
         apiSubjectName: q.apiSubjectName,
       }));
 
       const existing = await this.questionModel
-        .find({
-          $or: compoundKeys,
-        })
+        .find({ $or: compoundKeys })
         .select('apiQuestionId apiSubjectName')
         .lean();
 
@@ -369,28 +434,328 @@ export class QuestionsRepository {
         existing.map((q) => `${q.apiQuestionId}_${q.apiSubjectName}`),
       );
 
+      // ✅ 4. Filter new questions
       const newQuestions = uniqueQuestions.filter(
         (q) => !existingSet.has(`${q.apiQuestionId}_${q.apiSubjectName}`),
       );
 
-      if (newQuestions.length === 0) return;
-
-      console.log('newQuestions:', newQuestions);
-      // insertMany with ordered: false to skip duplicates safely
-      // const res = await this.questionModel.insertMany(newQuestions, {
-      //   ordered: false,
-      // });
-
-      const res = await this.questionModel.insertMany(newQuestions);
-      console.log('res:', res);
-    } catch (error: any) {
-      if (error.code === 11000) {
-        console.warn('Duplicate questions skipped.');
-      } else {
-        throw error;
+      if (!newQuestions.length) {
+        return {
+          inserted: 0,
+          skipped: uniqueQuestions.length,
+        };
       }
+
+      // 🔥 HELPER: normalize content → segments
+      const normalizeContent = (content: any[], fallbackText: string) => {
+        const safeContent =
+          content && content.length
+            ? content
+            : [
+                {
+                  type: 'text',
+                  order: 1,
+                  text: fallbackText || '',
+                },
+              ];
+
+        return safeContent.map((block: any) => {
+          if (block.type !== 'text') return block;
+
+          let segments: any[] = [];
+
+          // Case 1: text + segments
+          if (block.text && block.segments?.length) {
+            segments = [
+              {
+                text: block.text.endsWith(' ') ? block.text : block.text + ' ',
+                styles: [],
+              },
+              ...block.segments.map((seg: any) => ({
+                text: seg.text || '',
+                styles: seg.styles || [],
+              })),
+            ];
+          }
+
+          // Case 2: only text
+          else if (block.text) {
+            segments = [
+              {
+                text: block.text,
+                styles: [],
+              },
+            ];
+          }
+
+          // Case 3: only segments
+          else if (block.segments?.length) {
+            segments = block.segments.map((seg: any) => ({
+              text: seg.text || '',
+              styles: seg.styles || [],
+            }));
+          }
+
+          return {
+            type: 'text',
+            order: block.order || 1,
+            segments,
+          };
+        });
+      };
+
+      // 🔥 HELPER: extract plain text
+      const extractQuestionText = (content: any[]) => {
+        return content
+          .filter((block: any) => block.type === 'text')
+          .map(
+            (block: any) =>
+              block.segments?.map((seg: any) => seg.text).join('') || '',
+          )
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
+
+      // ✅ 5. FINAL NORMALIZATION
+      const normalizedQuestions = newQuestions.map((q) => {
+        // ✅ Normalize content FIRST
+        const normalizedContent = normalizeContent(q.content, q.question);
+
+        // ✅ Extract clean string
+        const questionText = extractQuestionText(normalizedContent);
+
+        return {
+          ...q,
+
+          apiSubjectName: q.apiSubjectName.toLowerCase(),
+          examType: q.examType.toLowerCase(),
+          section: q.section.toLowerCase(),
+
+          answer: q.answer.toLowerCase(),
+
+          // ✅ Options → array format
+          options: Object.entries(q.options || {}).map(([label, value]) => ({
+            label: label.toLowerCase(),
+            value: (value as string).toLowerCase(),
+          })),
+
+          correctAnswers: [q.answer.toLowerCase()],
+
+          // ✅ FINAL FIELDS
+          content: normalizedContent,
+          question: questionText,
+        };
+      });
+
+      // ✅ 6. Insert
+      const insertedDocs =
+        await this.questionModel.insertMany(normalizedQuestions);
+
+      return {
+        inserted: insertedDocs.length,
+        skipped: questions.length - insertedDocs.length,
+      };
+    } catch (error: any) {
+      if (error.writeErrors) {
+        error.writeErrors.forEach((err: any, i: number) => {
+          console.error(`❌ Error ${i}:`, err.errmsg);
+        });
+      }
+
+      throw error;
     }
   }
+
+  // async insertQuestions(questions: any[]) {
+  //   if (!questions?.length) {
+  //     return { inserted: 0, skipped: 0 };
+  //   }
+
+  //   // ✅ 1. Validate required fields
+  //   const validQuestions = questions.filter(
+  //     (q) => q.apiQuestionId && q.apiSubjectName,
+  //   );
+
+  //   if (!validQuestions.length) {
+  //     // console.log('Question length validation');
+  //     return { inserted: 0, skipped: questions.length };
+  //   }
+
+  //   // ✅ 2. Remove duplicates inside request batch
+  //   const uniqueMap = new Map<string, any>();
+
+  //   for (const q of validQuestions) {
+  //     const key = `${q.apiQuestionId}_${q.apiSubjectName}`;
+  //     if (!uniqueMap.has(key)) {
+  //       uniqueMap.set(key, q);
+  //     }
+  //   }
+
+  //   const uniqueQuestions = Array.from(uniqueMap.values());
+
+  //   if (!uniqueQuestions.length) {
+  //     // console.log('Unique question length');
+  //     return { inserted: 0, skipped: validQuestions.length };
+  //   }
+
+  //   try {
+  //     // ✅ 3. Check existing in DB
+  //     const compoundKeys = uniqueQuestions.map((q) => ({
+  //       apiQuestionId: q.apiQuestionId,
+  //       apiSubjectName: q.apiSubjectName,
+  //     }));
+
+  //     const existing = await this.questionModel
+  //       .find({ $or: compoundKeys })
+  //       .select('apiQuestionId apiSubjectName')
+  //       .lean();
+
+  //     const existingSet = new Set(
+  //       existing.map((q) => `${q.apiQuestionId}_${q.apiSubjectName}`),
+  //     );
+
+  //     // ✅ 4. Filter truly new questions
+  //     const newQuestions = uniqueQuestions.filter(
+  //       (q) => !existingSet.has(`${q.apiQuestionId}_${q.apiSubjectName}`),
+  //     );
+
+  //     if (!newQuestions.length) {
+  //       // console.log('new questions length');
+  //       return {
+  //         inserted: 0,
+  //         skipped: uniqueQuestions.length,
+  //       };
+  //     }
+  //     // console.log('newQuestions:', newQuestions);
+
+  //     // ✅ 5. FINAL NORMALIZATION (IMPORTANT 🔥)
+  //     const normalizedQuestions = newQuestions.map((q) => {
+  //       console.log('FULL CONTENT:', JSON.stringify(q.content, null, 2));
+  //       // ✅ 🔥 EXTRACT CLEAN QUESTION TEXT (FIXED)
+  //       const questionText =
+  //         q.content
+  //           ?.filter((block: any) => block.type === 'text')
+  //           .map((block: any) => {
+  //             console.log('block.segments:', block.segments);
+  //             // ✅ ONLY USE SEGMENTS (this is your actual data now)
+  //             if (block.segments?.length) {
+  //               const response = block.segments
+  //                 .map((seg: any) => seg.text)
+  //                 .join('');
+  //               console.log('block segments:', response);
+  //               return response;
+  //             }
+
+  //             // fallback (just in case)
+  //             return block.text || '';
+  //           })
+  //           .join(' ')
+  //           .trim() ||
+  //         q.question ||
+  //         '';
+
+  //       return {
+  //         ...q,
+
+  //         apiSubjectName: q.apiSubjectName.toLowerCase(),
+  //         examType: q.examType.toLowerCase(),
+  //         section: q.section.toLowerCase(),
+
+  //         answer: q.answer.toLowerCase(),
+
+  //         // ✅ OPTIONS FIX
+  //         options: Object.entries(q.options || {}).map(([label, value]) => ({
+  //           label: label.toLowerCase(),
+  //           value: (value as string).toLowerCase(),
+  //         })),
+
+  //         // ✅ CORRECT ANSWERS FIX
+  //         correctAnswers: [q.answer.toLowerCase()],
+
+  //         // ✅ 🔥 CONTENT NORMALIZATION (KEEP YOUR LOGIC)
+  //         content: (
+  //           q.content || [
+  //             {
+  //               type: 'text',
+  //               order: 1,
+  //               text: q.question,
+  //             },
+  //           ]
+  //         ).map((block: any) => {
+  //           if (block.type === 'text') {
+  //             let segments: any[] = [];
+
+  //             // Case 1: BOTH text + segments
+  //             if (block.text && block.segments?.length) {
+  //               segments = [
+  //                 {
+  //                   text: block.text.endsWith(' ')
+  //                     ? block.text
+  //                     : block.text + ' ',
+  //                   styles: [],
+  //                 },
+  //                 ...block.segments.map((seg: any) => ({
+  //                   text: seg.text,
+  //                   styles: seg.styles || [],
+  //                 })),
+  //               ];
+  //             }
+
+  //             // Case 2: ONLY text
+  //             else if (block.text) {
+  //               segments = [
+  //                 {
+  //                   text: block.text,
+  //                   styles: [],
+  //                 },
+  //               ];
+  //             }
+
+  //             // Case 3: ONLY segments
+  //             else if (block.segments?.length) {
+  //               segments = block.segments.map((seg: any) => ({
+  //                 text: seg.text,
+  //                 styles: seg.styles || [],
+  //               }));
+  //             }
+
+  //             return {
+  //               type: 'text',
+  //               order: block.order,
+  //               segments,
+  //             };
+  //           }
+
+  //           return block;
+  //         }),
+
+  //         // ✅ 🔥 FINAL QUESTION STRING (FIXED HERE)
+  //         question: questionText,
+  //       };
+  //     });
+  //     // console.log('normalizedQuestions:', normalizedQuestions);
+
+  //     // ✅ 6. Insert
+  //     const insertedDocs =
+  //       await this.questionModel.insertMany(normalizedQuestions);
+
+  //     return {
+  //       inserted: insertedDocs.length,
+  //       skipped: questions.length - insertedDocs.length,
+  //     };
+  //   } catch (error: any) {
+  //     // console.error('🔥 FULL ERROR:', error);
+
+  //     if (error.writeErrors) {
+  //       error.writeErrors.forEach((err: any, i: number) => {
+  //         console.error(`❌ Error ${i}:`, err.errmsg);
+  //       });
+  //     }
+
+  //     throw error;
+  //   }
+  // }
 
   async backfillPlans() {
     const BATCH_SIZE = 2000;
@@ -461,47 +826,83 @@ export class QuestionsRepository {
         '2006',
       ];
 
-      // Fetch only questions in affectedYears with examType 'waec'
       const questions = await this.questionModel.find(
         {
           examType: 'waec',
           examYear: { $in: affectedYears },
         },
         { options: 1, answer: 1 },
-      ); // only fetch needed fields
+      );
+
+      if (!questions.length) {
+        console.log('No questions found for normalization.');
+        return;
+      }
+
+      const bulkOps: any[] = [];
 
       for (const q of questions) {
-        if (!q.options) continue; // skip if options is undefined
+        if (!q.options || typeof q.options !== 'object') continue;
 
         let needsUpdate = false;
 
-        // Convert options to lowercase keys & values
-        const optionsObj = Object.fromEntries(
-          Object.entries(q.options).map(([key, value]) => {
-            const newKey = key.toLowerCase();
-            const newValue = value.toLowerCase();
-            if (newKey !== key || newValue !== value) needsUpdate = true;
-            return [newKey, newValue];
-          }),
-        );
+        // ✅ Strongly type options
+        const options = q.options as Record<string, any>;
 
-        // Lowercase answer if it exists
-        const lowercasedAnswer = q.answer ? q.answer.toLowerCase() : q.answer;
-        if (q.answer && lowercasedAnswer !== q.answer) needsUpdate = true;
+        const normalizedOptions: Record<string, string> = {};
+
+        for (const [key, value] of Object.entries(options)) {
+          const newKey = key.toLowerCase();
+
+          const newValue =
+            typeof value === 'string'
+              ? value.toLowerCase()
+              : String(value).toLowerCase();
+
+          if (newKey !== key || newValue !== value) {
+            needsUpdate = true;
+          }
+
+          normalizedOptions[newKey] = newValue;
+        }
+
+        // ✅ Normalize answer
+        const normalizedAnswer =
+          typeof q.answer === 'string' ? q.answer.toLowerCase() : q.answer;
+
+        if (q.answer && normalizedAnswer !== q.answer) {
+          needsUpdate = true;
+        }
 
         if (needsUpdate) {
-          const updated = await this.questionModel.updateOne(
-            { _id: q._id },
-            { options: optionsObj, answer: lowercasedAnswer },
-          );
-
-          console.log('updated:', updated);
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: q._id },
+              update: {
+                $set: {
+                  options: normalizedOptions,
+                  answer: normalizedAnswer,
+                },
+              },
+            },
+          });
         }
       }
 
-      console.log('Normalization complete for affected years!');
+      if (bulkOps.length === 0) {
+        console.log('No updates needed. Already normalized.');
+        return;
+      }
+
+      // 🚀 MASS UPDATE (FAST)
+      const result = await this.questionModel.bulkWrite(bulkOps);
+
+      console.log(`✅ Normalization complete!`);
+      console.log(`Matched: ${result.matchedCount}`);
+      console.log(`Modified: ${result.modifiedCount}`);
     } catch (error) {
-      console.error('Error normalizing questions:', error);
+      console.error('❌ Error normalizing questions:', error);
+      throw error;
     }
   }
 
@@ -570,37 +971,82 @@ export class QuestionsRepository {
     }
   }
 
+  // async flattenOptions() {
+  //   // Step 1: Fetch all questions where options is an array with exactly 1 element
+  //   const questions = await this.questionModel.find({
+  //     options: { $type: 'array', $size: 1 },
+  //   });
+
+  //   console.log('questionslength:', questions.length);
+
+  //   if (questions.length === 0) {
+  //     console.log('No questions need flattening.');
+  //     return;
+  //   }
+
+  //   // Step 2: Prepare bulk operations
+  //   const bulkOps = questions.map((q) => ({
+  //     updateOne: {
+  //       filter: { _id: q._id },
+  //       update: { $set: { options: q.options && q.options[0] } },
+  //     },
+  //   }));
+
+  //   // Step 3: Execute bulkWrite
+  //   const result = await this.questionModel.bulkWrite(bulkOps, {
+  //     ordered: false,
+  //   });
+
+  //   console.log(
+  //     `Flattened options successfully for: ${result.modifiedCount} questions`,
+  //   );
+  //   console.log(
+  //     `Failed to flatten options for: ${questions.length - result.modifiedCount} questions`,
+  //   );
+  // }
+
   async flattenOptions() {
-    // Step 1: Fetch all questions where options is an array with exactly 1 element
     const questions = await this.questionModel.find({
       options: { $type: 'array', $size: 1 },
     });
 
-    console.log('questionslength:', questions.length);
+    console.log('questions length:', questions.length);
 
     if (questions.length === 0) {
       console.log('No questions need flattening.');
       return;
     }
 
-    // Step 2: Prepare bulk operations
-    const bulkOps = questions.map((q) => ({
-      updateOne: {
-        filter: { _id: q._id },
-        update: { $set: { options: q.options && q.options[0] } },
-      },
-    }));
+    const bulkOps = questions
+      .map((q) => {
+        if (!Array.isArray(q.options) || q.options.length !== 1) {
+          return null;
+        }
 
-    // Step 3: Execute bulkWrite
+        return {
+          updateOne: {
+            filter: { _id: q._id },
+            update: {
+              $set: {
+                options: [q.options[0]],
+              },
+            },
+          },
+        };
+      })
+      .filter((op): op is NonNullable<typeof op> => op !== null);
+
+    if (bulkOps.length === 0) {
+      console.log('No valid operations to perform.');
+      return;
+    }
+
     const result = await this.questionModel.bulkWrite(bulkOps, {
       ordered: false,
     });
 
     console.log(
       `Flattened options successfully for: ${result.modifiedCount} questions`,
-    );
-    console.log(
-      `Failed to flatten options for: ${questions.length - result.modifiedCount} questions`,
     );
   }
 }

@@ -227,6 +227,12 @@ export class QuestionsInjectionService {
     const { year, examType, subject, section, questions, type } =
       questionInjectionDto;
 
+    // console.log('questionInjectionDto:', questionInjectionDto);
+
+    questionInjectionDto.questions.map((q) => {
+      console.log('questionInjectionDto:', q.content);
+    });
+
     const findSubject = await this.subjectsRepository.findByName(
       subject.trim().toLowerCase(),
     );
@@ -247,20 +253,49 @@ export class QuestionsInjectionService {
     }
 
     const formattedQuestions = questions.map((q) => {
-      if (!q.question || !q.options || !q.answer) {
+      // ✅ 1. Extract plain text question from content
+      const questionText = q.content
+        ?.filter((block) => block.type === 'text')
+        .map((block) => block.text)
+        .join(' ')
+        ?.trim();
+
+      if (!questionText) {
         throw new BadRequestException({
-          message: `Invalid question format for ID: ${q.id}`,
+          message: `Question content missing for ID: ${q.id}`,
           success: false,
           status: 400,
         });
       }
 
-      const lowercasedOptions = Object.fromEntries(
-        Object.entries(q.options).map(([key, value]) => [
-          key.toLowerCase(),
-          value.toLowerCase(),
-        ]),
-      );
+      // ✅ 2. Convert options array → object
+      const optionsObject =
+        q.options?.reduce(
+          (acc, opt) => {
+            acc[opt.label.toLowerCase()] = opt.value.toLowerCase();
+            return acc;
+          },
+          {} as Record<string, string>,
+        ) || {};
+
+      if (!q.options || q.options.length === 0) {
+        throw new BadRequestException({
+          message: `Options missing for ID: ${q.id}`,
+          success: false,
+          status: 400,
+        });
+      }
+
+      // ✅ 3. Extract correct answer
+      const answer = q.correctAnswers?.[0]?.toLowerCase();
+
+      if (!answer) {
+        throw new BadRequestException({
+          message: `Answer missing for ID: ${q.id}`,
+          success: false,
+          status: 400,
+        });
+      }
 
       return {
         examYear: year,
@@ -269,21 +304,24 @@ export class QuestionsInjectionService {
         subject: findSubject._id,
         section: section.toLowerCase(),
         apiQuestionId: `${examType}-${q.id}`,
-        options: lowercasedOptions,
-        answer: q.answer.toLowerCase(),
+
+        // ✅ FIXED FIELDS
+        question: questionText,
+        content: q.content,
+        options: optionsObject,
+        answer,
+
         explanation: q.explanation,
-        question: q.question,
         type,
         plan,
+
         difficulty: q.difficulty?.trim().toLowerCase() || 'medium',
         topic: q.topic || null,
       };
     });
-
     const response =
       await this.questionsRepository.insertQuestions(formattedQuestions);
 
-    // console.log('response:', response);
     return response;
   }
 }

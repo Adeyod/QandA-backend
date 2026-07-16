@@ -1,7 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import {
+  QuestionType,
+  TextStyle,
+} from '../../../common/enums/question-type.enum';
 import { Plan } from '../../../modules/users/schemas/user.schema';
-import { QuestionType } from '../../questions-injection/dto/question-injection.dto';
 
 export type QuestionDocument = Question & Document;
 
@@ -18,19 +21,160 @@ export enum ExamSection {
   oral = 'oral',
 }
 
+export enum ContentType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  EQUATION = 'equation',
+  TABLE = 'table',
+  GRAPH = 'graph',
+  LIST = 'list',
+}
+
+@Schema({ _id: false })
+export class Segment {
+  @Prop({ required: true })
+  text!: string;
+
+  @Prop({
+    type: [String],
+    enum: TextStyle, // 🔥 IMPORTANT: enforce enum
+    default: [],
+  })
+  styles?: TextStyle[];
+}
+
+@Schema({ _id: false })
+class GraphDataset {
+  @Prop({ required: true })
+  label!: string;
+
+  @Prop({ type: [Number], required: true })
+  data!: number[];
+}
+
+@Schema({ _id: false })
+class Graph {
+  @Prop({ required: true })
+  type!: 'line' | 'bar' | 'pie';
+
+  @Prop({ type: [String], required: true })
+  labels!: string[];
+
+  @Prop({ type: [GraphDataset], required: true })
+  datasets!: GraphDataset[];
+}
+
+@Schema({ _id: false })
+export class ContentBlock {
+  @Prop({
+    required: true,
+    enum: ['text', 'image', 'equation', 'table', 'graph', 'list'],
+  })
+  type!: 'text' | 'image' | 'equation' | 'table' | 'graph' | 'list';
+
+  @Prop({ required: true })
+  order!: number;
+
+  /* -------- TEXT (PRIMARY APPROACH) -------- */
+
+  @Prop({
+    type: [Segment],
+    default: [],
+  })
+  segments?: Segment[];
+
+  /* -------- IMAGE -------- */
+
+  @Prop()
+  url?: string;
+
+  @Prop()
+  alt?: string;
+
+  /* -------- EQUATION -------- */
+
+  @Prop()
+  latex?: string;
+
+  /* -------- TABLE -------- */
+
+  @Prop({
+    type: [[String]],
+    default: [],
+  })
+  table?: string[][];
+
+  /* -------- GRAPH -------- */
+
+  @Prop({
+    type: Graph,
+  })
+  graph?: Graph;
+
+  /* -------- LIST -------- */
+
+  @Prop({
+    type: [String],
+    default: [],
+  })
+  items?: string[];
+
+  /* -------- FLEXIBLE METADATA -------- */
+
+  @Prop({
+    type: Object,
+    default: {},
+  })
+  metadata?: Record<string, any>;
+}
+
 @Schema({ _id: false })
 export class Option {
+  @Prop({ required: true })
   label!: string;
-  type!: string;
+
+  @Prop({ required: true })
+  value!: string;
+
+  // @Prop({ default: false })
+  // isCorrect?: boolean;
+
+  // @Prop()
+  // explanation?: string;
+}
+
+@Schema({ timestamps: true })
+export class Passage {
+  @Prop({ type: [ContentBlock], required: true })
+  content!: ContentBlock[];
+
+  @Prop()
+  title?: string;
+
+  @Prop({ required: true, ref: 'Subject' })
+  subject!: Types.ObjectId;
 }
 
 @Schema({ timestamps: true })
 export class Question {
+  // Replace plain string with structured content
+  @Prop({ type: [ContentBlock], required: true })
+  content!: ContentBlock[];
+
   @Prop({ required: true, trim: true })
   question!: string;
 
-  @Prop({ type: Object, default: {} })
-  options?: Option;
+  // Link to passage instead of storing text
+  @Prop({ type: Types.ObjectId, ref: 'Passage', default: null })
+  passageId?: Types.ObjectId;
+
+  // Flexible media (image, diagram, audio later)
+  @Prop({ type: ContentBlock, default: null })
+  media?: ContentBlock;
+
+  // Proper options array
+  @Prop({ type: [Option], default: [] })
+  options?: Option[];
 
   @Prop({ required: true })
   apiQuestionId!: string;
@@ -45,34 +189,28 @@ export class Question {
   section?: ExamSection;
 
   @Prop({ default: '' })
-  image!: string;
-
-  @Prop({ type: String, default: '' })
   answer!: string;
 
-  @Prop({ type: String, default: '' })
+  @Prop({ default: '' })
   solution!: string;
 
-  @Prop({ type: String, default: '' })
+  @Prop({ default: '' })
+  explanation!: string;
+
+  @Prop({ default: '' })
   examType!: string;
 
-  @Prop({ type: String, default: '' })
+  @Prop({ default: '' })
   examYear!: string;
 
   @Prop({ required: true })
   apiSubjectName!: string;
 
-  @Prop({})
-  explanation!: string;
-
   @Prop({ type: String, enum: ExamDifficulty, default: ExamDifficulty.EASY })
   difficulty!: ExamDifficulty;
 
-  @Prop({})
-  passage!: string;
-
-  @Prop({})
-  category!: string; // Grammer, Lexis, Narrative
+  @Prop()
+  category!: string;
 
   @Prop({ required: false })
   plan!: Plan;
@@ -87,6 +225,15 @@ export class Question {
     default: QuestionType.MCQ,
   })
   questionType!: QuestionType;
+
+  @Prop({ type: [String], default: [] })
+  correctAnswers!: string[];
+
+  @Prop({ default: false })
+  isMultipleAnswer?: boolean;
+
+  @Prop({ default: 1 })
+  marks?: number;
 }
 
 export const QuestionSchema = SchemaFactory.createForClass(Question);
