@@ -37,7 +37,7 @@ export class Segment {
 
   @Prop({
     type: [String],
-    enum: TextStyle, // 🔥 IMPORTANT: enforce enum
+    enum: TextStyle, // IMPORTANT: enforce enum
     default: [],
   })
   styles?: TextStyle[];
@@ -135,12 +135,6 @@ export class Option {
 
   @Prop({ required: true })
   value!: string;
-
-  // @Prop({ default: false })
-  // isCorrect?: boolean;
-
-  // @Prop()
-  // explanation?: string;
 }
 
 @Schema({ timestamps: true })

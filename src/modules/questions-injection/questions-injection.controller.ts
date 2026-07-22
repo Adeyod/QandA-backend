@@ -6,15 +6,10 @@ import {
   HttpStatus,
   Param,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Role } from '../users/schemas/user.schema';
 import { QuestionInjectionDto } from './dto/question-injection.dto';
 import { QuestionsInjectionService } from './questions-injection.service';
 
@@ -31,9 +26,9 @@ export class QuestionsInjectionController {
   }
 
   @Post('/inject-manually')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiBearerAuth('JWT-auth')
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(Role.ADMIN)
+  // @ApiBearerAuth('JWT-auth')
   @SuccessMessage('Questions stored successfully.')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
