@@ -230,7 +230,7 @@ export class QuestionsInjectionService {
     // console.log('questionInjectionDto:', questionInjectionDto);
 
     questionInjectionDto.questions.map((q) => {
-      console.log('questionInjectionDto:', q.content);
+      console.log('questionInjectionDto:', q);
     });
 
     const findSubject = await this.subjectsRepository.findByName(
@@ -310,7 +310,7 @@ export class QuestionsInjectionService {
         content: q.content,
         options: optionsObject,
         answer,
-
+        imageId: q.imageId,
         explanation: q.explanation,
         type,
         plan,

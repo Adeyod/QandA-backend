@@ -23,6 +23,13 @@ export class NewQuestionDto {
   content!: ContentBlockDto[];
 
   @ApiPropertyOptional({
+    description: 'Image ID.',
+  })
+  @IsOptional()
+  @IsString()
+  imageId?: string;
+
+  @ApiPropertyOptional({
     description: 'List of answer options',
     type: [OptionDto],
   })
