@@ -104,9 +104,14 @@ export class PaymentsController {
   })
   async getAllPaymentsOfAUserByUserId(
     @Param('userId') userId: string,
+    @Query() queryWithPaginationDto: QueryWithPaginationDto,
     @GetCurrentUser() user: JwtUser,
   ) {
-    return this.paymentsService.getAllPaymentsOfAUserByUserId(user, userId);
+    return this.paymentsService.getAllPaymentsOfAUserByUserId(
+      user,
+      queryWithPaginationDto,
+      userId,
+    );
   }
 
   @Get('get-all-payments')

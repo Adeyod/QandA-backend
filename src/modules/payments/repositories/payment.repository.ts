@@ -180,10 +180,70 @@ export class PaymentsRepository {
 
   async getAllPaymentsOfAUserWithUserId(
     userId: Types.ObjectId,
-  ): Promise<PaymentDocument[] | null> {
-    const payments = await this.paymentModel.find({ userId });
-    console.log('payments:', payments);
-    return payments;
+    queryWithPaginationsDto: QueryWithPaginationDto,
+  ): Promise<{
+    paymentObj: PaymentDocument[] | null;
+    totalPages: number;
+    totalCount: number;
+  }> {
+    const { page, limit, searchParams } = queryWithPaginationsDto;
+
+    let query = this.paymentModel.find({ userId });
+
+    if (searchParams) {
+      const regex = new RegExp(searchParams, 'i');
+
+      const isBooleanSearch =
+        searchParams.toLowerCase() === 'true' ||
+        searchParams.toLowerCase() === 'false';
+
+      query = query.where({
+        $or: [
+          { plan: { $regex: regex } },
+          { provider: { $regex: regex } },
+          { status: { $regex: regex } },
+          ...(isBooleanSearch
+            ? [{ verified: searchParams.toLowerCase() === 'true' }]
+            : []),
+        ],
+      });
+    }
+
+    const count = await query.clone().countDocuments();
+    let pages = 0;
+
+    if (page !== undefined && limit !== undefined && count !== 0) {
+      const offset = (page - 1) * limit;
+
+      query = query.skip(offset).limit(limit);
+      pages = Math.ceil(count / limit);
+
+      if (page > pages) {
+        throw new NotFoundException({
+          message: 'Page not found.',
+          success: false,
+          status: 404,
+        });
+      }
+    }
+
+    const payments = await query.sort({ createdAt: -1 });
+
+    if (payments.length === 0) {
+      throw new NotFoundException({
+        message: 'Payments not found.',
+        success: false,
+        status: 404,
+      });
+    }
+
+    const response = {
+      totalCount: count,
+      totalPages: pages,
+      paymentObj: payments,
+    };
+
+    return response;
   }
 
   async getAllPayments(

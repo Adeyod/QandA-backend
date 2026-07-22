@@ -13,7 +13,6 @@ import { ReferralsService } from '../referrals/referrals.service';
 import { UsersRepository } from '../users/repositories/users.repository';
 import { Plan, Role } from '../users/schemas/user.schema';
 import { WalletsRepository } from '../wallets/repositories/wallets.repository';
-import { PaymentResponseDto } from './dto/payment-response.dto';
 import { IPaymentProvider } from './providers/interfaces/provider.interface';
 import { PaystackService } from './providers/paystack/paystack.service';
 import { PaymentsRepository } from './repositories/payment.repository';
@@ -295,8 +294,9 @@ export class PaymentsService {
 
   async getAllPaymentsOfAUserByUserId(
     user: JwtUser,
+    queryWithPaginationDto: QueryWithPaginationDto,
     userId: string,
-  ): Promise<PaymentResponseDto[]> {
+  ) {
     const { sub, role } = user;
 
     if (role !== Role.ADMIN) {
@@ -311,15 +311,19 @@ export class PaymentsService {
 
     const id = new Types.ObjectId(userId);
     const payments =
-      await this.paymentsRepository.getAllPaymentsOfAUserWithUserId(id);
+      await this.paymentsRepository.getAllPaymentsOfAUserWithUserId(
+        id,
+        queryWithPaginationDto,
+      );
 
-    if (!payments) {
+    if (!payments.paymentObj || payments.paymentObj.length === 0) {
       throw new NotFoundException({
-        message: 'No payment found for this user',
+        message: 'Payments not found.',
         success: false,
         status: 404,
       });
     }
+
     return payments;
   }
 
