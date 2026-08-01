@@ -70,7 +70,7 @@ export class UsersController {
     return details;
   }
   @Get('/get-user-details-by-userId/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @SuccessMessage('User details fetched successfully.')

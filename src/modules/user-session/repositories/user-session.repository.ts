@@ -25,11 +25,29 @@ export class UserSessionRepository {
     return response;
   }
 
-  async findByUserAndDevice(userId: Types.ObjectId, deviceId: string) {
+  async findByUserAndDevice(
+    userId: Types.ObjectId,
+    deviceId: string,
+  ): Promise<UserSessionDocument | null> {
     const response = await this.sessionModel.findOne({ userId, deviceId });
+    // .exec();
 
     console.log('findByUserAndDevice response:', response);
 
+    return response;
+  }
+
+  async findActiveSessionsExcludingDevice(
+    userId: Types.ObjectId,
+    deviceId: string,
+  ) {
+    const response = await this.sessionModel
+      .find({
+        userId,
+        deviceId: { $ne: deviceId },
+        isActive: true,
+      })
+      .exec();
     return response;
   }
 
@@ -41,7 +59,9 @@ export class UserSessionRepository {
     return response;
   }
 
-  async updateSession(id: string, data: Partial<UserSession>) {
+  async updateSession(sessionId: string, data: Partial<UserSession>) {
+    const id = new Types.ObjectId(sessionId);
+
     const response = await this.sessionModel.findByIdAndUpdate(id, data, {
       new: true,
     });

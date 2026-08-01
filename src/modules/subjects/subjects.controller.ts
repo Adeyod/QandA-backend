@@ -170,6 +170,8 @@ export class SubjectsController {
   }
 
   @Get(':subjectId')
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @SuccessMessage('Subject fetched successfully')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

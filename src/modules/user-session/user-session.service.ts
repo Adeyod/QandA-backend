@@ -126,25 +126,28 @@ export class UserSessionService {
     );
     console.log('existingSession:', existingSession);
 
-    if (existingSession) {
-      return this.repo.updateSession(existingSession._id.toString(), {
-        lastActiveAt: new Date(),
-        isActive: true,
-      });
-    }
-
     if (dto.role === Role.ADMIN) {
-      return this.repo.createSession({
+      if (existingSession) {
+        return await this.repo.updateSession(existingSession._id.toString(), {
+          lastActiveAt: new Date(),
+          isActive: true,
+        });
+      }
+
+      return await this.repo.createSession({
         ...payload,
         isActive: true,
         lastActiveAt: new Date(),
       });
     }
 
-    const activeSessions = await this.repo.findActiveSession(payload.userId);
+    const activeSessions = await this.repo.findActiveSessionsExcludingDevice(
+      payload.userId,
+      payload.deviceId,
+    );
 
     // No active session
-    if (activeSessions.length > 0) {
+    if (activeSessions && activeSessions.length > 0) {
       throw new ConflictException({
         message: 'You are logged in on another device',
         action: 'FORCE_SWITCH_REQUIRED',
@@ -152,7 +155,14 @@ export class UserSessionService {
       });
     }
 
-    return this.repo.createSession({
+    if (existingSession) {
+      return await this.repo.updateSession(existingSession._id.toString(), {
+        lastActiveAt: new Date(),
+        isActive: true,
+      });
+    }
+
+    return await this.repo.createSession({
       ...payload,
       isActive: true,
       lastActiveAt: new Date(),
