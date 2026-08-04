@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -199,13 +198,14 @@ export class AuthService {
 
       const nextAllowedSwitchDate = addDays(lastSwitch, 90);
 
-      if (new Date() < nextAllowedSwitchDate) {
-        throw new ForbiddenException({
-          message: `You can switch again on ${nextAllowedSwitchDate.toDateString()}`,
-          success: false,
-          status: 403,
-        });
-      }
+      // I will add this back after all testing has been done to prevent switching more than ones in 90 days
+      // if (new Date() < nextAllowedSwitchDate) {
+      //   throw new ForbiddenException({
+      //     message: `You can switch again on ${nextAllowedSwitchDate.toDateString()}`,
+      //     success: false,
+      //     status: 403,
+      //   });
+      // }
     }
 
     const payload = {
