@@ -28,7 +28,8 @@ export class UserSession {
 export const UserSessionSchema = SchemaFactory.createForClass(UserSession);
 
 // Prevent duplicate device sessions
-UserSessionSchema.index({ userId: 1, deviceId: 1 }, { unique: true });
+UserSessionSchema.index({ userId: 1, deviceId: 1 });
+// UserSessionSchema.index({ userId: 1, deviceId: 1 }, { unique: true });
 
 // TTL (optional - auto delete after 30 days)
 UserSessionSchema.index(
