@@ -180,7 +180,7 @@ export class UserSessionService {
     await this.repo.deactivateSessions(payload.userId);
 
     // Create new session
-    return this.repo.createSession({
+    return await this.repo.createSession({
       ...payload,
       isActive: true,
       lastActiveAt: new Date(),
