@@ -22,6 +22,7 @@ import { ReferralsModule } from './modules/referrals/referrals.module';
 import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
 import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
 import { UserSessionModule } from './modules/user-session/user-session.module';
+import { SocketModule } from './modules/socket/socket.module';
 
 @Module({
   imports: [
@@ -133,6 +134,7 @@ import { UserSessionModule } from './modules/user-session/user-session.module';
     WithdrawalsModule,
     PaymentGatewayModule,
     UserSessionModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -138,7 +138,11 @@ export class AuthController {
     description: 'Internal server error',
   })
   async forceSwitch(@Body() loginDto: LoginDto) {
-    return await this.authService.forceSwitch(loginDto);
+    const response = await this.authService.forceSwitch(loginDto);
+
+    const time = new Date().toISOString();
+    console.log(`forced switch at ${time}`);
+    return response;
   }
 
   @Post('forgot-password')

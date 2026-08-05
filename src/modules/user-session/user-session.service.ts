@@ -5,6 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { SessionGateway } from '../socket/socket.gateway';
 import { Role } from '../users/schemas/user.schema';
 import { CreateSessionDto } from './dtos/create-session.dto';
 import { ForceSwitchDto } from './dtos/force-switch.dto';
@@ -12,7 +13,10 @@ import { UserSessionRepository } from './repositories/user-session.repository';
 
 @Injectable()
 export class UserSessionService {
-  constructor(private readonly repo: UserSessionRepository) {}
+  constructor(
+    private readonly sessionGateway: SessionGateway,
+    private readonly repo: UserSessionRepository,
+  ) {}
 
   async findActiveSession(userId: string) {
     const response = await this.repo.findActiveSession(
@@ -178,6 +182,8 @@ export class UserSessionService {
 
     // Deactivate all sessions
     await this.repo.deactivateSessions(payload.userId);
+
+    this.sessionGateway.notifySessionTerminated(dto.userId);
 
     // Create new session
     return await this.repo.createSession({
