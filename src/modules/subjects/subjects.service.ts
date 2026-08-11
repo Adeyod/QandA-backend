@@ -11,10 +11,7 @@ import { SubjectsRepository } from './repositories/subjects.repository';
 
 @Injectable()
 export class SubjectsService {
-  constructor(
-    private subjectsRepository: SubjectsRepository,
-    // private questionsRepository: QuestionsRepository,
-  ) {}
+  constructor(private subjectsRepository: SubjectsRepository) {}
   async createSubject(createSubjectDto: CreateSubjectDto) {
     const subjectExist = await this.subjectsRepository.findByName(
       createSubjectDto.name.toLowerCase(),
