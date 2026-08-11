@@ -4,7 +4,8 @@ import { WebhookProcessionTransactionType } from '../../schemas/payment.schema';
 export interface PaymentInitializationPayload {
   email: string;
   amount: number;
-  reference: string;
+  ref: string;
+  // reference: string;
   userId: string;
   type: WebhookProcessionTransactionType;
 }

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { Plan } from '../../users/schemas/user.schema';
+import { PlanCode } from '../../plans/schemas/plan.schema';
 
 export class CreateSubjectDto {
   @ApiProperty({
@@ -13,9 +13,9 @@ export class CreateSubjectDto {
 
   @ApiProperty({
     description: 'Plan that the subject belong to.',
-    example: Plan.SECONDARY,
+    example: PlanCode.SECONDARY,
   })
   @IsNotEmpty({ message: 'Plan is required' })
   @IsString({ message: 'Plan is a string' })
-  plan!: Plan;
+  plan!: PlanCode;
 }

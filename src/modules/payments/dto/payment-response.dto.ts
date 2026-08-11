@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Types } from 'mongoose';
-import { Plan } from '../../../modules/users/schemas/user.schema';
+import { PlanCode } from '../../plans/schemas/plan.schema';
 import { PaymentProvider, PaymentStatus } from '../schemas/payment.schema';
 
 export class PaymentResponseDto {
@@ -18,9 +18,9 @@ export class PaymentResponseDto {
 
   @ApiProperty({
     description: 'This refers to the plan that the student is paying for.',
-    example: Plan.SECONDARY,
+    example: PlanCode.SECONDARY,
   })
-  plan!: Plan;
+  plan!: PlanCode;
 
   @ApiProperty({
     description: 'Amount paid',

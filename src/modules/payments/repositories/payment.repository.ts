@@ -7,7 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { generatePaymentReference } from '../../../common/utils/helper';
-import { Plan, PLAN_PRICES } from '../../users/schemas/user.schema';
+import { PlanCode, PlanDocument } from '../../plans/schemas/plan.schema';
 import {
   Payment,
   PaymentDocument,
@@ -40,10 +40,12 @@ export class PaymentsRepository {
   async createPaymentIntent(
     userId: Types.ObjectId,
     provider: PaymentProvider,
-    plan: Plan,
+    planObj: PlanDocument,
   ) {
-    console.log('plan:', plan);
-    const amount = PLAN_PRICES[plan];
+    const plan = planObj.code;
+
+    const amount = planObj.price;
+
     console.log('amount:', amount);
     if (!amount) {
       throw new BadRequestException({
@@ -122,7 +124,7 @@ export class PaymentsRepository {
 
   async existingPendingPaymentUsingUserIdAndPlan(
     userId: Types.ObjectId,
-    plan: Plan,
+    plan: PlanCode,
     status: PaymentStatus,
   ): Promise<PaymentDocument | null> {
     const existing = await this.paymentModel.findOne({
@@ -166,7 +168,7 @@ export class PaymentsRepository {
 
   async findSuccessfulPaymentPlan(
     userId: Types.ObjectId,
-    plan: Plan,
+    plan: PlanCode,
   ): Promise<PaymentDocument | null> {
     const intent = await this.paymentModel.findOne({
       userId,
@@ -323,3 +325,8 @@ export class PaymentsRepository {
     return paymentTransaction;
   }
 }
+
+/**
+ * findSuccessfulPaymentPlan
+ * existingPendingPaymentUsingUserIdAndPlan
+ */

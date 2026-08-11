@@ -140,8 +140,6 @@ export class AuthController {
   async forceSwitch(@Body() loginDto: LoginDto) {
     const response = await this.authService.forceSwitch(loginDto);
 
-    const time = new Date().toISOString();
-    console.log(`forced switch at ${time}`);
     return response;
   }
 

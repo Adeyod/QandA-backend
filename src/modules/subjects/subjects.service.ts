@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
-import { Plan } from '../users/schemas/user.schema';
+import { PlanCode } from '../plans/schemas/plan.schema';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { SubjectsRepository } from './repositories/subjects.repository';
 
@@ -56,7 +56,7 @@ export class SubjectsService {
     return this.subjectsRepository.findAll(queryWithPaginationDto);
   }
   async getAllSubjectsPerCategory(
-    plan: Plan,
+    plan: PlanCode,
     queryWithPaginationDto: QueryWithPaginationDto,
   ) {
     if (!plan) {

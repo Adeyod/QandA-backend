@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Plan } from '../../users/schemas/user.schema';
+import { PlanCode } from '../../plans/schemas/plan.schema';
 
 export type PaymentDocument = Payment & Document;
 
@@ -25,8 +25,8 @@ export class Payment {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId!: Types.ObjectId;
 
-  @Prop({ required: true, enum: Plan })
-  plan!: Plan;
+  @Prop({ required: true, enum: PlanCode })
+  plan!: PlanCode;
 
   @Prop({ required: true })
   expiresAt!: Date;

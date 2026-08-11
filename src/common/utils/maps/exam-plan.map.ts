@@ -1,23 +1,23 @@
-import { Plan } from '../../../modules/users/schemas/user.schema';
+import { PlanCode } from '../../../modules/plans/schemas/plan.schema';
 
-export const EXAM_PLAN_MAP: Record<string, Plan> = {
+export const EXAM_PLAN_MAP: Record<string, PlanCode> = {
   // SECONDARY
-  utme: Plan.SECONDARY,
-  'post-utme': Plan.SECONDARY,
-  wassce: Plan.SECONDARY,
-  waec: Plan.SECONDARY,
-  jamb: Plan.SECONDARY,
-  neco: Plan.SECONDARY,
-  ijmb: Plan.SECONDARY,
+  utme: PlanCode.SECONDARY,
+  'post-utme': PlanCode.SECONDARY,
+  wassce: PlanCode.SECONDARY,
+  waec: PlanCode.SECONDARY,
+  jamb: PlanCode.SECONDARY,
+  neco: PlanCode.SECONDARY,
+  ijmb: PlanCode.SECONDARY,
 
   // TERTIARY
-  nursing: Plan.TERTIARY,
-  medical: Plan.TERTIARY,
-  law: Plan.TERTIARY,
+  nursing: PlanCode.TERTIARY,
+  medical: PlanCode.TERTIARY,
+  law: PlanCode.TERTIARY,
 
   // OTHERS
-  coren: Plan.OTHERS,
-  ican: Plan.OTHERS,
-  anna: Plan.OTHERS,
-  ielts: Plan.OTHERS,
+  coren: PlanCode.OTHERS,
+  ican: PlanCode.OTHERS,
+  anna: PlanCode.OTHERS,
+  ielts: PlanCode.OTHERS,
 };

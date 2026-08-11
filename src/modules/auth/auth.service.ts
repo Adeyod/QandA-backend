@@ -14,12 +14,12 @@ import { JwtUser } from '../../common/types/jwt-user.type';
 import { generateCode } from '../../common/utils/code';
 import { addDays } from '../../common/utils/helper';
 import { MailService } from '../../mail/mail.service';
+import { PlanCode } from '../plans/schemas/plan.schema';
 import { RefreshTokensService } from '../refresh-tokens/refresh-tokens.service';
 import { TokensRepository } from '../tokens/repositories/tokens.repository';
 import { TokenPurpose } from '../tokens/schemas/token.schema';
 import { UserSessionService } from '../user-session/user-session.service';
 import { UsersRepository } from '../users/repositories/users.repository';
-import { Plan } from '../users/schemas/user.schema';
 import { WalletResponseDto } from '../wallets/dto/wallet-response.dto';
 import { WalletsRepository } from '../wallets/repositories/wallets.repository';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -469,7 +469,7 @@ export class AuthService {
     sub: Types.ObjectId;
     email: string;
     role: string;
-    plans: Plan[];
+    plans: PlanCode[];
   }) {
     const { email, sub, role, plans } = user;
     const accessToken = this.generateAccessTokens(email, sub, role, plans);
@@ -569,7 +569,7 @@ export class AuthService {
     email: string,
     id: Types.ObjectId,
     role: string,
-    plans: Plan[],
+    plans: PlanCode[],
   ) {
     console.log('I want to generate access token');
     const payload = { sub: id, email, role, plans };

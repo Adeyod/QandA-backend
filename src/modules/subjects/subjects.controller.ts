@@ -24,7 +24,8 @@ import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Plan, Role } from '../users/schemas/user.schema';
+import { PlanCode } from '../plans/schemas/plan.schema';
+import { Role } from '../users/schemas/user.schema';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { SubjectResponseDto } from './dto/subject-response.dto';
 import { SubjectsService } from './subjects.service';
@@ -160,7 +161,7 @@ export class SubjectsController {
     },
   })
   async getAllSubjectsPerCategory(
-    @Param('plan') plan: Plan,
+    @Param('plan') plan: PlanCode,
     @Query() queryWithPaginationDto: QueryWithPaginationDto,
   ) {
     return await this.subjectsService.getAllSubjectsPerCategory(

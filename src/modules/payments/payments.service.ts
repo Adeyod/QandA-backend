@@ -9,9 +9,11 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../common/dto/query-with-pagination';
 import { JwtUser } from '../../common/types/jwt-user.type';
+import { PlansService } from '../plans/plans.service';
+import { PlanCode } from '../plans/schemas/plan.schema';
 import { ReferralsService } from '../referrals/referrals.service';
 import { UsersRepository } from '../users/repositories/users.repository';
-import { Plan, Role } from '../users/schemas/user.schema';
+import { Role } from '../users/schemas/user.schema';
 import { WalletsRepository } from '../wallets/repositories/wallets.repository';
 import { IPaymentProvider } from './providers/interfaces/provider.interface';
 import { PaystackService } from './providers/paystack/paystack.service';
@@ -32,6 +34,7 @@ export class PaymentsService {
     private readonly paymentsRepository: PaymentsRepository,
     private readonly walletsRepository: WalletsRepository,
     private readonly paystackService: PaystackService,
+    private readonly plansService: PlansService,
     private readonly referralsService: ReferralsService,
     // private readonly flutterwaveService: flutterwaveService,
     private usersRepository: UsersRepository,
@@ -44,7 +47,7 @@ export class PaymentsService {
 
   async createPaymentIntent(
     provider: PaymentProvider,
-    plan: Plan,
+    plan: PlanCode,
     user: JwtUser,
   ) {
     const findUser = await this.usersRepository.findById(user.sub);
@@ -57,9 +60,19 @@ export class PaymentsService {
       });
     }
 
+    const planExist = await this.plansService.getPlanByCode(plan);
+
+    if (!planExist) {
+      throw new NotFoundException({
+        message: 'Plan does not exist.',
+        success: false,
+        status: 404,
+      });
+    }
+
     const alreadyPaid = await this.paymentsRepository.findSuccessfulPaymentPlan(
       findUser._id,
-      plan,
+      planExist.code,
     );
 
     if (alreadyPaid) {
@@ -75,7 +88,7 @@ export class PaymentsService {
     const findIntent =
       await this.paymentsRepository.existingPendingPaymentUsingUserIdAndPlan(
         findUser._id,
-        plan,
+        planExist.code,
         status,
       );
 
@@ -99,7 +112,7 @@ export class PaymentsService {
     const createIntent = await this.paymentsRepository.createPaymentIntent(
       findUser._id,
       provider,
-      plan,
+      planExist,
     );
 
     if (!createIntent) {
@@ -123,7 +136,8 @@ export class PaymentsService {
     const providerResponse = await handler.initializePayment({
       email: user.email,
       amount: createIntent.amount * 100,
-      reference: createIntent.reference,
+      ref: createIntent.reference,
+      // reference: createIntent.reference,
       userId: findUser._id.toString(),
       type: WebhookProcessionTransactionType.PAYMENT,
     });

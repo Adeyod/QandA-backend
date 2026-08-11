@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { PlansModule } from '../plans/plans.module';
 import { ReferralsModule } from '../referrals/referrals.module';
 import { UserSessionModule } from '../user-session/user-session.module';
 import { UsersModule } from '../users/users.module';
@@ -16,6 +17,7 @@ import { Payment, PaymentSchema } from './schemas/payment.schema';
     UsersModule,
     WalletsModule,
     UserSessionModule,
+    PlansModule,
     forwardRef(() => ReferralsModule),
   ],
   controllers: [PaymentsController],

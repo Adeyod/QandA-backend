@@ -23,6 +23,7 @@ import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
 import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.module';
 import { UserSessionModule } from './modules/user-session/user-session.module';
 import { SocketModule } from './modules/socket/socket.module';
+import { PlansModule } from './modules/plans/plans.module';
 
 @Module({
   imports: [
@@ -135,6 +136,7 @@ import { SocketModule } from './modules/socket/socket.module';
     PaymentGatewayModule,
     UserSessionModule,
     SocketModule,
+    PlansModule,
   ],
   controllers: [AppController],
   providers: [AppService],

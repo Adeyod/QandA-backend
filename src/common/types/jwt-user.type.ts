@@ -1,9 +1,9 @@
 import { Types } from 'mongoose';
-import { Plan } from '../../modules/users/schemas/user.schema';
+import { PlanCode } from '../../modules/plans/schemas/plan.schema';
 
 export interface JwtUser {
   sub: Types.ObjectId;
   email: string;
   role: string;
-  plans: Plan[];
+  plans: PlanCode[];
 }

@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
-import { Plan } from '../../users/schemas/user.schema';
+import { PlanCode } from '../../plans/schemas/plan.schema';
 import { SubjectDocument } from '../schemas/subject.schema';
 
 export class SubjectsRepository {
@@ -18,7 +18,7 @@ export class SubjectsRepository {
     return await this.subjectModel.findById(id);
   }
 
-  async create(name: string, plan: Plan): Promise<SubjectDocument> {
+  async create(name: string, plan: PlanCode): Promise<SubjectDocument> {
     const subject = new this.subjectModel({ name, plans: [plan] });
     return await subject.save();
   }
@@ -136,7 +136,7 @@ export class SubjectsRepository {
   }
 
   async addMorePlanToSubject(
-    plan: Plan,
+    plan: PlanCode,
     subjectId: Types.ObjectId,
   ): Promise<SubjectDocument | null> {
     const subject = await this.subjectModel.findByIdAndUpdate(

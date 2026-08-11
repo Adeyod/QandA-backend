@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Plan } from '../../users/schemas/user.schema';
+import { PlanCode } from '../../plans/schemas/plan.schema';
 
 export type SubjectDocument = Subject & Document;
 
@@ -11,11 +11,11 @@ export class Subject {
 
   @Prop({
     type: [String],
-    enum: Plan,
+    enum: PlanCode,
     required: true,
     default: [],
   })
-  plans!: Plan[];
+  plans!: PlanCode[];
 }
 
 export const SubjectSchema = SchemaFactory.createForClass(Subject);

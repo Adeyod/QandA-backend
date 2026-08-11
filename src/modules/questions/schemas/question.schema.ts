@@ -4,7 +4,7 @@ import {
   QuestionType,
   TextStyle,
 } from '../../../common/enums/question-type.enum';
-import { Plan } from '../../../modules/users/schemas/user.schema';
+import { PlanCode } from '../../plans/schemas/plan.schema';
 
 export type QuestionDocument = Question & Document;
 
@@ -219,7 +219,7 @@ export class Question {
   category!: string;
 
   @Prop({ required: false })
-  plan!: Plan;
+  plan!: PlanCode;
 
   @Prop({ required: true, ref: 'Subject' })
   subject!: Types.ObjectId;

@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsString } from 'class-validator';
-import { Plan } from '../../../modules/users/schemas/user.schema';
+import { PlanCode } from '../../plans/schemas/plan.schema';
 
 export class GetQuestionsDto {
   @ApiProperty({
     description: 'This is the plan that the user want the questions from',
-    example: Plan.SECONDARY,
+    example: PlanCode.SECONDARY,
   })
-  @IsEnum(Plan)
-  plan!: Plan;
+  @IsEnum(PlanCode)
+  plan!: PlanCode;
 
   @ApiProperty({
     description: 'This is the subject ID',

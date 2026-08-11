@@ -23,7 +23,8 @@ import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import type { JwtUser } from '../../common/types/jwt-user.type';
-import { Plan, Role } from '../users/schemas/user.schema';
+import { PlanCode } from '../plans/schemas/plan.schema';
+import { Role } from '../users/schemas/user.schema';
 import { PaymentsService } from './payments.service';
 import { PaymentProvider } from './schemas/payment.schema';
 
@@ -62,7 +63,7 @@ export class PaymentsController {
   })
   async createPaymentIntent(
     @Param('provider') provider: PaymentProvider,
-    @Param('plan') plan: Plan,
+    @Param('plan') plan: PlanCode,
     @GetCurrentUser() user: JwtUser,
   ) {
     return await this.paymentsService.createPaymentIntent(provider, plan, user);
