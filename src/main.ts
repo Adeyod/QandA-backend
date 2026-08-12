@@ -10,7 +10,6 @@ import { Queue } from 'bull';
 import { AppModule } from './app.module';
 import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
 import { GlobalResponseInterceptor } from './common/interceptor/global-response.interceptor';
-import { QuestionsRepository } from './modules/questions/repositories/questions.repository';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,11 +26,8 @@ async function bootstrap() {
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/admin/queues');
 
-  const repo = app.get(QuestionsRepository);
-  // await repo.changeExamYearByExamIds(examIds);
-
-  // const repo = app.get(WalletsRepository);
-  // await repo.createWallet('69b6e93307f1bf73531171cb');
+  // const repo = app.get(SubjectsRepository);
+  // await repo.updateFreePracticeSubjects();
 
   // Create Bull Board
   const { addQueue, removeQueue, replaceQueues } = createBullBoard({

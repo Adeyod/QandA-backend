@@ -9,6 +9,9 @@ export class Subject {
   @Prop({ required: true })
   name!: string;
 
+  @Prop({ required: true, default: false })
+  hasFreePractice!: boolean;
+
   @Prop({
     type: [String],
     enum: PlanCode,
