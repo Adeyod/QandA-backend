@@ -50,7 +50,7 @@ export class TransactionsService {
     const id = new Types.ObjectId(userId);
 
     if (user.role === Role.USER) {
-      if (id !== user.sub) {
+      if (userId !== user.sub.toString()) {
         throw new ForbiddenException({
           message: 'Access denied. This transactions does not belong to you.',
           success: false,
