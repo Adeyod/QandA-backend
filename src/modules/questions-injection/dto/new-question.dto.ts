@@ -58,6 +58,21 @@ export class NewQuestionDto {
   explanation?: string;
 
   @ApiPropertyOptional({
+    description: 'Step-by-step explanation of the correct answer',
+    example: [
+      'Identify what the question is asking.',
+      'Review each of the available options.',
+      'Eliminate the options that are incorrect.',
+      'Therefore, option A is the correct answer.',
+    ],
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  explanationSteps?: string[];
+
+  @ApiPropertyOptional({
     description: 'Instruction for the question',
     example: 'Choose the correct answer',
   })

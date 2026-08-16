@@ -203,6 +203,12 @@ export class Question {
   @Prop({ default: '' })
   explanation!: string;
 
+  @Prop({
+    type: [String],
+    default: [],
+  })
+  explanationSteps!: string[];
+
   @Prop({ default: '' })
   examType!: string;
 

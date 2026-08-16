@@ -104,15 +104,6 @@ export class QuestionObjDto {
   @IsString()
   id!: string;
 
-  // @ApiProperty({
-  //   description:
-  //     'Main question text (can include plain text or formatted content)',
-  //   example: 'Define a noun.',
-  // })
-  // @IsNotEmpty()
-  // @IsString()
-  // question!: string;
-
   @ApiPropertyOptional({
     description:
       'Multiple choice options as key-value pairs. Keys must be a, b, c, d, e',
@@ -175,6 +166,21 @@ export class QuestionObjDto {
   @IsOptional()
   @IsString()
   explanation?: string;
+
+  @ApiPropertyOptional({
+    description: 'Step-by-step explanation of the correct answer',
+    example: [
+      'Identify what the question is asking.',
+      'Review each of the available options.',
+      'Eliminate the options that are incorrect.',
+      'Therefore, option A is the correct answer.',
+    ],
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  explanationSteps?: string[];
 
   @ApiPropertyOptional({
     description: 'Difficulty level of the question',

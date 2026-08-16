@@ -537,7 +537,7 @@ export class QuestionsRepository {
           // ✅ Options → array format
           options: Object.entries(q.options || {}).map(([label, value]) => ({
             label: label.toLowerCase(),
-            value: (value as string).toLowerCase(),
+            value: value as string,
           })),
 
           correctAnswers: [q.answer.toLowerCase()],

@@ -312,6 +312,7 @@ export class QuestionsInjectionService {
         answer,
         imageId: q.imageId,
         explanation: q.explanation,
+        explanationSteps: q.explanationSteps,
         type,
         plan,
 
