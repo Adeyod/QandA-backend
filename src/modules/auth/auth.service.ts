@@ -18,6 +18,7 @@ import { PlanCode } from '../plans/schemas/plan.schema';
 import { RefreshTokensService } from '../refresh-tokens/refresh-tokens.service';
 import { TokensRepository } from '../tokens/repositories/tokens.repository';
 import { TokenPurpose } from '../tokens/schemas/token.schema';
+import { UserSessionDocument } from '../user-session/schemas/user-session.schema';
 import { UserSessionService } from '../user-session/user-session.service';
 import { UsersRepository } from '../users/repositories/users.repository';
 import { WalletResponseDto } from '../wallets/dto/wallet-response.dto';
@@ -320,7 +321,7 @@ export class AuthService {
     } else {
       const userId = user._id.toString();
 
-      let session;
+      let session: UserSessionDocument;
       const role = user.role;
 
       try {
@@ -472,6 +473,8 @@ export class AuthService {
     plans: PlanCode[];
   }) {
     const { email, sub, role, plans } = user;
+
+    console.log('requestAccessToken user:', user);
     const accessToken = this.generateAccessTokens(email, sub, role, plans);
 
     return accessToken;
@@ -571,7 +574,6 @@ export class AuthService {
     role: string,
     plans: PlanCode[],
   ) {
-    console.log('I want to generate access token');
     const payload = { sub: id, email, role, plans };
 
     const accessToken = await this.jwtService.signAsync(payload, {

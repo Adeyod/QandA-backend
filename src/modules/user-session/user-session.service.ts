@@ -1,4 +1,3 @@
-// user-session.service.ts
 import {
   BadRequestException,
   ConflictException,
@@ -10,6 +9,7 @@ import { Role } from '../users/schemas/user.schema';
 import { CreateSessionDto } from './dtos/create-session.dto';
 import { ForceSwitchDto } from './dtos/force-switch.dto';
 import { UserSessionRepository } from './repositories/user-session.repository';
+import { UserSessionDocument } from './schemas/user-session.schema';
 
 @Injectable()
 export class UserSessionService {
@@ -116,7 +116,7 @@ export class UserSessionService {
   //     currentDevice: activeSession.deviceName, // nice UX addition
   //   });
   // }
-  async handleLogin(dto: CreateSessionDto) {
+  async handleLogin(dto: CreateSessionDto): Promise<UserSessionDocument> {
     console.log('dto:', dto);
     const payload = {
       userId: new Types.ObjectId(dto.userId),

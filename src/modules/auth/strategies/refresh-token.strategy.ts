@@ -30,7 +30,10 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req: Request, payload: { sub: string; email: string }) {
+  async validate(
+    req: Request,
+    payload: { sub: string; email: string; sessionId: string },
+  ) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {

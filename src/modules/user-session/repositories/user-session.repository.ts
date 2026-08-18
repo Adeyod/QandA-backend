@@ -1,5 +1,4 @@
-// user-session.repository.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import {
@@ -51,7 +50,9 @@ export class UserSessionRepository {
     return response;
   }
 
-  async createSession(data: Partial<UserSession>) {
+  async createSession(
+    data: Partial<UserSession>,
+  ): Promise<UserSessionDocument> {
     const response = await new this.sessionModel(data).save();
 
     console.log('createSession response:', response);
@@ -67,6 +68,13 @@ export class UserSessionRepository {
     });
 
     console.log('updateSession response:', response);
+    if (!response) {
+      throw new NotFoundException({
+        message: 'User session not found.',
+        success: false,
+        status: 404,
+      });
+    }
 
     return response;
   }
