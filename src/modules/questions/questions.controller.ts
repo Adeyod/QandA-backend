@@ -13,6 +13,7 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
+import { GetCurrentUser } from '../../common/decorators/get-current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SuccessMessage } from '../../common/decorators/success-message.decorator';
 import { ApiResponseDto } from '../../common/dto/api-response.dto';
@@ -20,7 +21,9 @@ import { DeviceSessionGuard } from '../../common/guards/device-session.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PlansGuard } from '../../common/guards/plans.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import type { JwtUser } from '../../common/types/jwt-user.type';
 import { Role } from '../users/schemas/user.schema';
+import { GetPracticeQuestionsDto } from './dto/get-practice-questions.dto';
 import { GetQuestionsDto } from './dto/get-questions.dto';
 import { QuestionsService } from './questions.service';
 
@@ -242,5 +245,47 @@ export class QuestionsController {
     const questions =
       await this.questionsService.getPaidQuestionsPerPlan(getQuestionsDto);
     return questions;
+  }
+
+  @Get('practice-session')
+  @UseGuards(JwtAuthGuard, DeviceSessionGuard, RolesGuard)
+  @Roles(Role.USER, Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: 'x-device-id',
+    description: 'Unique device identifier for the user session',
+    required: true,
+    example: 'device-123456789',
+  })
+  @SuccessMessage('Questions fetched successfully')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Fetching practice questions based on selected plan',
+    description:
+      'This is the endpoint for fetching practice questions based on the plan that the user selected. This endpoint is expecting subjectId, mode, questionCount and duration from req.body. It is also expecting accessToken from req.headers. Admin and user can use this endpoint.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Questions fetched successfully',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Unable to fetch questions.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async getPracticeQuestionBySubjectId(
+    @Query() getPracticeQuestionsDto: GetPracticeQuestionsDto,
+    @GetCurrentUser() user: JwtUser,
+  ) {
+    const response = await this.questionsService.getPracticeQuestionBySubjectId(
+      getPracticeQuestionsDto,
+      user,
+    );
+
+    return response;
   }
 }

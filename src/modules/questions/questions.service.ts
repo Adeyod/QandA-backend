@@ -4,7 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { JwtUser } from '../../common/types/jwt-user.type';
 import { SubjectsRepository } from '../subjects/repositories/subjects.repository';
+import { GetPracticeQuestionsDto } from './dto/get-practice-questions.dto';
 import { GetQuestionsDto } from './dto/get-questions.dto';
 import { QuestionsRepository } from './repositories/questions.repository';
 
@@ -14,6 +16,19 @@ export class QuestionsService {
     private questionsRepository: QuestionsRepository,
     private subjectsRepository: SubjectsRepository,
   ) {}
+
+  async getPracticeQuestionBySubjectId(
+    getPracticeQuestionsDto: GetPracticeQuestionsDto,
+    user: JwtUser,
+  ) {
+    // const userWalletBalance = await this.
+    const response =
+      await this.questionsRepository.getPracticeQuestionBySubjectId(
+        getPracticeQuestionsDto,
+      );
+
+    return response;
+  }
 
   async findById(questionId: string) {
     const id = new Types.ObjectId(questionId);

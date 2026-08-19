@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { QueryWithPaginationDto } from '../../../common/dto/query-with-pagination';
 import { EXAM_PLAN_MAP } from '../../../common/utils/maps/exam-plan.map';
+import { GetPracticeQuestionsDto } from '../dto/get-practice-questions.dto';
 import { GetQuestionsDto } from '../dto/get-questions.dto';
 import { QuestionDocument } from '../schemas/question.schema';
 
@@ -328,6 +329,37 @@ export class QuestionsRepository {
     console.log('Updated docs:', result.modifiedCount);
 
     return result;
+  }
+
+  async getPracticeQuestionBySubjectId(
+    getPracticeQuestionsDto: GetPracticeQuestionsDto,
+  ) {
+    const { subjectId, mode, questionCount, duration, examType } =
+      getPracticeQuestionsDto;
+
+    const subjectObjectId = new Types.ObjectId(subjectId);
+
+    const questions = await this.questionModel.aggregate([
+      {
+        $match: {
+          subject: subjectObjectId,
+          examType,
+        },
+      },
+      {
+        $sample: {
+          size: questionCount,
+        },
+      },
+    ]);
+
+    return {
+      subjectId,
+      mode,
+      questionCount: questions.length,
+      duration,
+      questions,
+    };
   }
 
   // async insertQuestions(questions: any[]) {
