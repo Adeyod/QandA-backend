@@ -116,7 +116,7 @@ export class PaystackService implements IPaymentProvider {
     } = payload;
 
     // 2. Convert to kobo
-    const amountInKobo = amount * 100;
+    const amountInKobo = amount;
 
     // 5. Initiate transfer
     const response = await axios.post(

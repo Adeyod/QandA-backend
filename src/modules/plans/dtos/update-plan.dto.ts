@@ -39,7 +39,7 @@ export class UpdatePlanDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  price?: number;
+  priceInKobo?: number;
 
   @ApiPropertyOptional({
     description:

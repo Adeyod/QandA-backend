@@ -32,7 +32,7 @@ export class Payment {
   expiresAt!: Date;
 
   @Prop({ required: true })
-  amount!: number; // store in kobo
+  amountInKobo!: number; // store in kobo
 
   @Prop({ required: true, unique: true })
   reference!: string; // internal reference

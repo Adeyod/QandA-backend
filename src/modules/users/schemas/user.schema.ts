@@ -54,6 +54,9 @@ export class User {
   isVerified!: boolean;
 
   @Prop({ default: false })
+  isActive!: boolean;
+
+  @Prop({ default: false })
   hasPaid!: boolean;
 
   @Prop({})

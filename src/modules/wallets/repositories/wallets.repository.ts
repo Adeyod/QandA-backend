@@ -79,7 +79,7 @@ export class WalletsRepository {
   ): Promise<WalletDocument | null> {
     const {
       walletId,
-      amount,
+      amountInKobo,
       description,
       category,
       referredUserId,
@@ -90,7 +90,7 @@ export class WalletsRepository {
     const walletBal = await this.walletModel.findByIdAndUpdate(
       id,
       {
-        $inc: { balance: amount },
+        $inc: { balance: amountInKobo },
       },
       {
         returnDocument: 'after',
@@ -99,7 +99,7 @@ export class WalletsRepository {
 
     const payload = {
       walletId,
-      amount,
+      amountInKobo,
       description,
       transactionType: TransactionType.CREDIT,
       category,
@@ -117,7 +117,7 @@ export class WalletsRepository {
   ): Promise<WalletDocument | null> {
     const {
       walletId,
-      amount,
+      amountInKobo,
       description,
       category,
       referredUserId,
@@ -129,7 +129,7 @@ export class WalletsRepository {
       .findByIdAndUpdate(
         id,
         {
-          $inc: { balance: amount },
+          $inc: { balanceInKobo: amountInKobo },
         },
         {
           returnDocument: 'after',
@@ -139,7 +139,7 @@ export class WalletsRepository {
 
     const payload = {
       walletId,
-      amount,
+      amountInKobo,
       description,
       transactionType: TransactionType.CREDIT,
       category,
@@ -159,7 +159,7 @@ export class WalletsRepository {
   }
 
   async debitWallet(walletDebitDto: WalletDebitDto) {
-    const { walletId, amount, description } = walletDebitDto;
+    const { walletId, amountInKobo, description } = walletDebitDto;
 
     const id = new Types.ObjectId(walletId);
 
@@ -173,7 +173,7 @@ export class WalletsRepository {
       });
     }
 
-    if (wallet.balance < amount) {
+    if (wallet.balanceInKobo < amountInKobo) {
       throw new BadRequestException({
         message: 'Insufficient balance',
         success: false,
@@ -182,12 +182,12 @@ export class WalletsRepository {
     }
 
     await this.walletModel.findByIdAndUpdate(wallet._id, {
-      $inc: { balance: -amount },
+      $inc: { balanceInKobo: -amountInKobo },
     });
 
     const payload = {
       walletId,
-      amount,
+      amountInKobo,
       description,
       transactionType: TransactionType.DEBIT,
       category: TransactionCategoryEnum.GENERAL,
@@ -196,6 +196,45 @@ export class WalletsRepository {
       await this.transactionsRepository.createTransaction(payload);
 
     // We need to add the process of calling payment provider to credit the account number of the user here
+  }
+  async chargeWallet(walletDebitDto: WalletDebitDto) {
+    const { walletId, amountInKobo, description } = walletDebitDto;
+
+    const id = new Types.ObjectId(walletId);
+
+    const wallet = await this.walletModel.findById(id);
+
+    if (!wallet) {
+      throw new NotFoundException({
+        message: 'Wallet not found',
+        success: false,
+        status: 404,
+      });
+    }
+
+    if (wallet.balanceInKobo < amountInKobo) {
+      throw new BadRequestException({
+        message: 'Insufficient balance',
+        success: false,
+        status: 400,
+      });
+    }
+
+    await this.walletModel.findByIdAndUpdate(wallet._id, {
+      $inc: { balanceInKobo: -amountInKobo },
+    });
+
+    const payload = {
+      walletId,
+      amountInKobo,
+      description,
+      transactionType: TransactionType.DEBIT,
+      category: TransactionCategoryEnum.GENERAL,
+    };
+    const debitTransaction =
+      await this.transactionsRepository.createTransaction(payload);
+
+    return debitTransaction;
   }
 
   async findWalletsByUserIds(
@@ -231,6 +270,6 @@ export class WalletsRepository {
   async getWalletBalance(walletId: string): Promise<number | null> {
     const id = new Types.ObjectId(walletId);
     const wallet = await this.walletModel.findById(id);
-    return wallet?.balance || null;
+    return wallet?.balanceInKobo || null;
   }
 }

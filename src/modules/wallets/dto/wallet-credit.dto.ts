@@ -14,12 +14,12 @@ export class WalletCreditDto {
 
   @ApiProperty({
     description:
-      'This is the amount that will be credited to the wallet account',
-    example: 500,
+      'This is the amount that will be credited to the wallet account. It must be in kobo',
+    example: 50000,
   })
   @IsNotEmpty({ message: 'Amount is required' })
   @IsNumber()
-  amount!: number;
+  amountInKobo!: number;
 
   @ApiProperty({
     description: 'This is the narration of what the amount is meant for',

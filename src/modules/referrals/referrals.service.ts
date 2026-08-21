@@ -17,7 +17,7 @@ export class ReferralsService {
     private readonly transactionsRepository: TransactionsRepository,
   ) {}
 
-  async processReferralReward(userId: string, amount: number) {
+  async processReferralReward(userId: string, amountInKobo: number) {
     const id = new Types.ObjectId(userId);
     const user = await this.usersRepository.findById(id);
 
@@ -29,7 +29,7 @@ export class ReferralsService {
       3: 0.025,
     };
 
-    const formattedAmt = amount / 100;
+    const formattedAmt = amountInKobo;
 
     const referralIds = user.referralChain.map((r) => r.userId);
 
@@ -58,7 +58,7 @@ export class ReferralsService {
 
       await this.walletsRepository.creditWallet({
         walletId: wallet._id.toString(),
-        amount: rewardAmount,
+        amountInKobo: rewardAmount,
         description,
         category: TransactionCategoryEnum.REFERRAL_BONUS,
         referredUserId: id,
@@ -68,7 +68,7 @@ export class ReferralsService {
   }
   async processReferralRewardWithSession(
     userId: string,
-    amount: number,
+    amountInKobo: number,
     session: ClientSession,
   ) {
     const id = new Types.ObjectId(userId);
@@ -82,7 +82,7 @@ export class ReferralsService {
       3: 0.025,
     };
 
-    const formattedAmt = amount / 100;
+    const formattedAmt = amountInKobo;
 
     const referralIds = user.referralChain.map((r) => r.userId);
 
@@ -120,7 +120,7 @@ export class ReferralsService {
       await this.walletsRepository.creditWalletWithSession(
         {
           walletId: wallet._id.toString(),
-          amount: rewardAmount,
+          amountInKobo: rewardAmount,
           description,
           category: TransactionCategoryEnum.REFERRAL_BONUS,
           referredUserId: id,

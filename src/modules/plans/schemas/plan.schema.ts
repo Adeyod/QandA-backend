@@ -26,11 +26,32 @@ export class Plan {
   @Prop({ default: true })
   isPremium!: boolean;
 
+  /**
+   * Price to be converted to kobo
+   * Stored in kobo.
+   *
+   * Example:
+   * 300000 = ₦3000
+   */
   @Prop({ required: true, min: 0 })
-  price!: number;
+  priceInKobo!: number;
 
   @Prop({ default: true })
   isActive!: boolean;
+
+  /**
+   * Price charged for one practice question.
+   * Stored in kobo.
+   *
+   * Example:
+   * 1000 = ₦10
+   */
+  @Prop({
+    type: Number,
+    default: 0,
+    min: 0,
+  })
+  pricePerPracticeQuestionInKobo!: number;
 }
 
 export const PlanSchema = SchemaFactory.createForClass(Plan);

@@ -24,6 +24,7 @@ import { PaymentGatewayModule } from './modules/payment-gateway/payment-gateway.
 import { UserSessionModule } from './modules/user-session/user-session.module';
 import { SocketModule } from './modules/socket/socket.module';
 import { PlansModule } from './modules/plans/plans.module';
+import { CompanyWalletModule } from './modules/company-wallet/company-wallet.module';
 
 @Module({
   imports: [
@@ -137,6 +138,7 @@ import { PlansModule } from './modules/plans/plans.module';
     UserSessionModule,
     SocketModule,
     PlansModule,
+    CompanyWalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],

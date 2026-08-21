@@ -135,7 +135,7 @@ export class WithdrawalsService {
         session,
       );
 
-      if (!wallet || wallet.balance < dto.amount) {
+      if (!wallet || wallet.balanceInKobo < dto.amountInKobo) {
         throw new BadRequestException('Insufficient balance');
       }
 
@@ -156,7 +156,7 @@ export class WithdrawalsService {
           {
             userId: new Types.ObjectId(id),
             walletId: wallet._id,
-            amount: dto.amount,
+            amountInKobo: dto.amountInKobo,
             reference,
             recipientCode: userAccount.transferRecipientCode,
             status: WithdrawalStatus.PENDING,
@@ -165,7 +165,7 @@ export class WithdrawalsService {
         );
 
       // Debit wallet
-      wallet.balance -= dto.amount;
+      wallet.balanceInKobo -= dto.amountInKobo;
       await wallet.save({ session });
 
       // Create transaction log
@@ -173,7 +173,7 @@ export class WithdrawalsService {
         await this.transactionsRepo.createTransactionWithSession(
           {
             walletId: wallet._id.toString(),
-            amount: dto.amount,
+            amountInKobo: dto.amountInKobo,
             description: 'Withdrawal request',
             transactionType: TransactionType.DEBIT,
             category: TransactionCategoryEnum.GENERAL,
@@ -201,7 +201,7 @@ export class WithdrawalsService {
           accountNumber: userAccount.accountNumber,
           accountName: userAccount.accountName,
           recipientCode: userAccount.transferRecipientCode,
-          amount: dto.amount,
+          amount: dto.amountInKobo,
           walletId: wallet._id.toString(),
           reference: withdrawal.reference,
           type: WebhookProcessionTransactionType.WITHDRAWAL,
@@ -242,7 +242,7 @@ export class WithdrawalsService {
         // 2️⃣ Refund wallet
         await this.walletsRepo.creditUserWallet(
           withdrawal.userId,
-          withdrawal.amount,
+          withdrawal.amountInKobo,
           session2,
         );
 
@@ -315,7 +315,7 @@ export class WithdrawalsService {
       // 2 Refund wallet
       await this.walletsRepo.creditUserWallet(
         withdrawal.userId,
-        withdrawal.amount,
+        withdrawal.amountInKobo,
         session,
       );
 

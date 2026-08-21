@@ -18,5 +18,5 @@ export class WalletResponseDto {
     description: 'Balance of the wallet',
     example: 50,
   })
-  balance!: number;
+  balanceInKobo!: number;
 }

@@ -27,7 +27,7 @@ export class TransactionsRepository {
       {
         $group: {
           _id: null,
-          total: { $sum: '$amount' },
+          total: { $sum: '$amountInKobo' },
         },
       },
     ]);
@@ -36,7 +36,7 @@ export class TransactionsRepository {
   async createTransaction(transactionCreationDto: TransactionCreationDto) {
     const {
       walletId,
-      amount,
+      amountInKobo,
       description,
       transactionType,
       category,
@@ -48,7 +48,7 @@ export class TransactionsRepository {
 
     const newTransaction = await new this.transactionModel({
       walletId: id,
-      amount,
+      amountInKobo,
       type: transactionType,
       description,
       category,
@@ -65,7 +65,7 @@ export class TransactionsRepository {
   ) {
     const {
       walletId,
-      amount,
+      amountInKobo,
       description,
       transactionType,
       category,
@@ -77,7 +77,7 @@ export class TransactionsRepository {
 
     const newTransaction = await new this.transactionModel({
       walletId: id,
-      amount,
+      amountInKobo,
       type: transactionType,
       description,
       category,
@@ -212,4 +212,41 @@ export class TransactionsRepository {
 
     return response;
   }
+
+  // async migratePaymentAmountsToKobo() {
+  //   const payments = (await this.transactionModel
+  //     .find({
+  //       amount: { $exists: true },
+  //       amountInKobo: { $exists: false },
+  //     })
+  //     .lean()) as unknown as LegacyPayment[];
+
+  //   console.log(`Found ${payments.length} payments to migrate.`);
+
+  //   let migratedCount = 0;
+
+  //   for (const payment of payments) {
+  //     const amountInKobo = Math.round(payment.amount * 100);
+
+  //     await this.transactionModel.updateOne(
+  //       { _id: payment._id },
+  //       {
+  //         $set: {
+  //           amountInKobo,
+  //         },
+  //         $unset: {
+  //           amount: 1,
+  //         },
+  //       },
+  //     );
+
+  //     migratedCount++;
+  //   }
+
+  //   return {
+  //     message: 'Payment amounts migrated successfully.',
+  //     totalFound: payments.length,
+  //     migratedCount,
+  //   };
+  // }
 }

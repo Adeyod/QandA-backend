@@ -10,13 +10,22 @@ export class UsersRepository {
   constructor(@InjectModel('User') private userModel: Model<UserDocument>) {}
 
   async findById(id: Types.ObjectId): Promise<UserDocument | null> {
-    return await this.userModel.findById(id);
+    const response = await this.userModel.findOne({ _id: id, isActive: false });
+
+    console.log('response:', response);
+
+    return response;
   }
   async findByIdWithSession(
     id: Types.ObjectId,
     session: ClientSession,
   ): Promise<UserDocument | null> {
-    return await this.userModel.findById(id).session(session);
+    const response = await this.userModel
+      .findOne({ _id: id, isActive: false })
+      .session(session);
+
+    console.log('response:', response);
+    return response;
   }
 
   async countDocuments(filter: any) {
@@ -56,7 +65,11 @@ export class UsersRepository {
   async findByEmail(email: string): Promise<UserDocument | null> {
     const user = await this.userModel.findOne({
       email: email.toLowerCase().trim(),
+      isActive: false,
     });
+
+    console.log('user:', user);
+
     return user;
   }
 
@@ -162,7 +175,7 @@ export class UsersRepository {
   }> {
     const { page, searchParams, limit } = queryWithPaginationDto;
 
-    let query = this.userModel.find({ role: Role.USER });
+    let query = this.userModel.find({ role: Role.USER, isActive: false });
 
     if (searchParams) {
       const regex = new RegExp(searchParams, 'i');
@@ -213,4 +226,62 @@ export class UsersRepository {
     };
     return response;
   }
+
+  async assignDefaultToUsers() {
+    const defaultId = new Types.ObjectId('69b57ce53426b1b900984393');
+
+    const result = await this.userModel.updateMany(
+      {
+        $or: [{ referredBy: { $exists: false } }, { referredBy: null }],
+      },
+      {
+        $set: {
+          referredBy: defaultId,
+        },
+        $push: {
+          referralChain: {
+            userId: defaultId,
+            level: 1,
+          },
+        },
+      },
+    );
+
+    console.log('assignDefaultToUsers:', result);
+
+    const message = 'Default referrer assigned successfully.';
+    const matchedCount = result.matchedCount;
+    const modifiedCount = result.modifiedCount;
+
+    console.log('assignDefaultToUsers message:', message);
+    console.log('assignDefaultToUsers matchedCount:', matchedCount);
+    console.log('assignDefaultToUsers modifiedCount:', modifiedCount);
+
+    return {
+      message,
+      matchedCount,
+      modifiedCount,
+    };
+  }
+
+  // async setExistingUsersInactive() {
+  //   const result = await this.userModel.updateMany(
+  //     {
+  //       isActive: { $exists: false },
+  //     },
+  //     {
+  //       $set: {
+  //         isActive: false,
+  //       },
+  //     },
+  //   );
+
+  //   console.log('setExistingUsersInactive result:', result);
+
+  //   return {
+  //     message: 'Existing users updated successfully.',
+  //     matchedCount: result.matchedCount,
+  //     modifiedCount: result.modifiedCount,
+  //   };
+  // }
 }

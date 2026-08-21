@@ -21,6 +21,12 @@ type PaymentHandlerInput = {
   userId: Types.ObjectId;
 };
 
+export interface LegacyPayment {
+  _id: Types.ObjectId;
+  amount: number;
+  amountInKobo?: number;
+}
+
 type PaymentHandler = (data: PaymentHandlerInput) => Promise<any>;
 
 @Injectable()
@@ -44,10 +50,10 @@ export class PaymentsRepository {
   ) {
     const plan = planObj.code;
 
-    const amount = planObj.price;
+    const amountInKobo = planObj.priceInKobo;
 
-    console.log('amount:', amount);
-    if (!amount) {
+    console.log('amountInKobo:', amountInKobo);
+    if (!amountInKobo) {
       throw new BadRequestException({
         message: 'Invalid Plan selected.',
         success: false,
@@ -65,7 +71,7 @@ export class PaymentsRepository {
     const newPayment = await new this.paymentModel({
       userId,
       plan,
-      amount,
+      amountInKobo,
       reference,
       provider,
       expiresAt,
@@ -324,6 +330,43 @@ export class PaymentsRepository {
 
     return paymentTransaction;
   }
+
+  // async migratePaymentAmountsToKobo() {
+  //   const payments = (await this.paymentModel
+  //     .find({
+  //       amount: { $exists: true },
+  //       amountInKobo: { $exists: false },
+  //     })
+  //     .lean()) as unknown as LegacyPayment[];
+
+  //   console.log(`Found ${payments.length} payments to migrate.`);
+
+  //   let migratedCount = 0;
+
+  //   for (const payment of payments) {
+  //     const amountInKobo = Math.round(payment.amount * 100);
+
+  //     await this.paymentModel.updateOne(
+  //       { _id: payment._id },
+  //       {
+  //         $set: {
+  //           amountInKobo,
+  //         },
+  //         $unset: {
+  //           amount: 1,
+  //         },
+  //       },
+  //     );
+
+  //     migratedCount++;
+  //   }
+
+  //   return {
+  //     message: 'Payment amounts migrated successfully.',
+  //     totalFound: payments.length,
+  //     migratedCount,
+  //   };
+  // }
 }
 
 /**

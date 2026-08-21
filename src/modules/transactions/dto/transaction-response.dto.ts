@@ -19,7 +19,7 @@ export class TransactionResponseDto {
     description: 'The amount transacted',
     example: 50,
   })
-  amount!: number;
+  amountInKobo!: number;
 
   @ApiProperty({
     description: 'The type of transaction done.',

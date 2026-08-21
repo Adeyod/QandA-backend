@@ -3,14 +3,49 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ClientSession } from 'mongoose';
+import { ExamType } from '../../common/enums/exam-type.enum';
 import { JwtUser } from '../../common/types/jwt-user.type';
+import { CompanyWalletService } from '../company-wallet/company-wallet.service';
 import { Role } from '../users/schemas/user.schema';
 import { WalletsRepository } from './repositories/wallets.repository';
 
 @Injectable()
 export class WalletsService {
-  constructor(private readonly walletsRepository: WalletsRepository) {}
+  constructor(
+    private readonly walletsRepository: WalletsRepository,
+    private readonly companyWalletService: CompanyWalletService,
+  ) {}
 
+  async chargeForPracticeQuestions(data: {
+    userWalletId: string;
+    amountInKobo: number;
+    questionCount: number;
+    examType: ExamType;
+    subjectId: string;
+    session: ClientSession;
+  }) {
+    const payload = {
+      walletId: data.userWalletId,
+      amountInKobo: data.amountInKobo,
+      description: `Charges for ${data.questionCount} practice questions.`,
+    };
+    const debitWallet = await this.walletsRepository.chargeWallet(payload);
+
+    console.log('debitWallet:', debitWallet);
+
+    const companyWallet =
+      await this.companyWalletService.getOrCreateCompanyWallet(data.session);
+    console.log('companyWallet:', companyWallet);
+
+    const creditCompanyWallet = await this.companyWalletService.creditWallet(
+      data.amountInKobo,
+      data.session,
+    );
+    console.log('creditCompanyWallet:', creditCompanyWallet);
+
+    return debitWallet;
+  }
   async findWalletByUserId(userId: string, user: JwtUser) {
     if (user.role !== Role.ADMIN) {
       if (user.sub.toString() !== userId) {
@@ -80,6 +115,6 @@ export class WalletsService {
       }
     }
 
-    return wallet.balance;
+    return wallet.balanceInKobo;
   }
 }

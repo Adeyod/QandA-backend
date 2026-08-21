@@ -5,13 +5,13 @@ import { PlanCode } from '../../plans/schemas/plan.schema';
 export class SubjectResponseDto {
   @ApiProperty({
     description: 'Subject ID',
-    example: 'ei3392ue8394jf9550dj49fj',
+    example: '69bd417a74676c09ac65bc56',
   })
   _id!: Types.ObjectId;
 
   @ApiProperty({
     description: 'Subject Name',
-    example: 'Chemistry',
+    example: 'english',
   })
   name!: string;
 

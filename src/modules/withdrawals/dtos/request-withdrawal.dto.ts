@@ -9,7 +9,7 @@ export class RequestWithdrawalDto {
   })
   @IsNumber()
   @Min(1000) // ₦1 minimum (1000000 kobo)
-  amount!: number;
+  amountInKobo!: number;
 
   @ApiProperty({
     description: 'This is the wallet address of the user that is withdrawing.',

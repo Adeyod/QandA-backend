@@ -5,7 +5,7 @@ import { ExamType } from '../../../common/enums/exam-type.enum';
 export class GetPracticeQuestionsDto {
   @ApiProperty({
     description: 'This is the subject ID',
-    example: '69be2b82206c0f7de64f089d',
+    example: '69bd417a74676c09ac65bc56',
   })
   @IsString({ message: 'Subject ID' })
   subjectId!: string;

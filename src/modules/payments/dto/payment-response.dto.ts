@@ -23,10 +23,10 @@ export class PaymentResponseDto {
   plan!: PlanCode;
 
   @ApiProperty({
-    description: 'Amount paid',
+    description: 'Amount paid In kobo',
     example: 2000,
   })
-  amount!: number;
+  amountInKobo!: number;
 
   @ApiProperty({
     description:

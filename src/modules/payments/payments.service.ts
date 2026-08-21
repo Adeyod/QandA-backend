@@ -135,7 +135,7 @@ export class PaymentsService {
 
     const providerResponse = await handler.initializePayment({
       email: user.email,
-      amount: createIntent.amount * 100,
+      amount: createIntent.amountInKobo,
       ref: createIntent.reference,
       // reference: createIntent.reference,
       userId: findUser._id.toString(),
@@ -286,7 +286,7 @@ export class PaymentsService {
     }
 
     // 5️⃣ Validate integrity
-    if (transaction.amount !== providerRes.amount) {
+    if (transaction.amountInKobo !== providerRes.amount) {
       throw new BadRequestException({
         message: 'Payment details mismatch.',
         success: false,
@@ -294,7 +294,7 @@ export class PaymentsService {
       });
     }
 
-    // 🚨 IMPORTANT: DO NOT UPDATE DATABASE HERE
+    // IMPORTANT: DO NOT UPDATE DATABASE HERE
 
     return {
       message:
@@ -432,7 +432,7 @@ export class PaymentsService {
     await this.referralsService
       .processReferralRewardWithSession(
         userExist._id.toString(),
-        payment.amount / 100,
+        payment.amountInKobo,
         session,
       )
       .catch(console.error);

@@ -10,6 +10,7 @@ import { Queue } from 'bull';
 import { AppModule } from './app.module';
 import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
 import { GlobalResponseInterceptor } from './common/interceptor/global-response.interceptor';
+import { UsersRepository } from './modules/users/repositories/users.repository';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,8 +27,9 @@ async function bootstrap() {
   const serverAdapter = new ExpressAdapter();
   serverAdapter.setBasePath('/admin/queues');
 
-  // const repo = app.get(SubjectsRepository);
-  // await repo.updateFreePracticeSubjects();
+  const repo = app.get(UsersRepository);
+  // await repo.setExistingUsersInactive();
+  // await repo.findByEmail('ayodejiadebolu@gmail.com');
 
   // Create Bull Board
   const { addQueue, removeQueue, replaceQueues } = createBullBoard({

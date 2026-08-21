@@ -9,7 +9,9 @@ export class Wallet {
   userId!: Types.ObjectId;
 
   @Prop({ default: 0 })
-  balance!: number;
+  balanceInKobo!: number;
 }
 
 export const WalletSchema = SchemaFactory.createForClass(Wallet);
+
+WalletSchema.index({ userId: 1 }, { unique: true });

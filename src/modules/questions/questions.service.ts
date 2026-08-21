@@ -1,11 +1,15 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection, Types } from 'mongoose';
 import { JwtUser } from '../../common/types/jwt-user.type';
+import { PlansService } from '../plans/plans.service';
 import { SubjectsRepository } from '../subjects/repositories/subjects.repository';
+import { WalletsService } from '../wallets/wallets.service';
 import { GetPracticeQuestionsDto } from './dto/get-practice-questions.dto';
 import { GetQuestionsDto } from './dto/get-questions.dto';
 import { QuestionsRepository } from './repositories/questions.repository';
@@ -13,21 +17,71 @@ import { QuestionsRepository } from './repositories/questions.repository';
 @Injectable()
 export class QuestionsService {
   constructor(
+    @InjectConnection() private readonly connection: Connection,
     private questionsRepository: QuestionsRepository,
     private subjectsRepository: SubjectsRepository,
+    private walletService: WalletsService,
+    private plansService: PlansService,
   ) {}
 
   async getPracticeQuestionBySubjectId(
     getPracticeQuestionsDto: GetPracticeQuestionsDto,
     user: JwtUser,
   ) {
-    // const userWalletBalance = await this.
-    const response =
-      await this.questionsRepository.getPracticeQuestionBySubjectId(
-        getPracticeQuestionsDto,
-      );
+    const userWallet = await this.walletService.findWalletByUserId(
+      user.sub.toString(),
+      user,
+    );
 
-    return response;
+    const plan = await this.plansService.getPlanByExamType(
+      getPracticeQuestionsDto.examType,
+    );
+
+    console.log('userWallet:', userWallet);
+
+    const totalAmountInKobo =
+      plan.pricePerPracticeQuestionInKobo *
+      getPracticeQuestionsDto.questionCount;
+    console.log('totalAmountInKobo:', totalAmountInKobo);
+    console.log('userWallet.balance:', userWallet.balanceInKobo);
+
+    if (userWallet.balanceInKobo < totalAmountInKobo) {
+      throw new BadRequestException({
+        message: 'Insufficient wallet balance.',
+        success: false,
+        status: 400,
+      });
+    }
+
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const chargeWallet = await this.walletService.chargeForPracticeQuestions({
+        userWalletId: userWallet._id.toString(),
+        amountInKobo: totalAmountInKobo,
+        questionCount: getPracticeQuestionsDto.questionCount,
+        examType: getPracticeQuestionsDto.examType,
+        subjectId: getPracticeQuestionsDto.subjectId,
+        session,
+      });
+
+      console.log('chargeWallet:', chargeWallet);
+      const response =
+        await this.questionsRepository.getPracticeQuestionBySubjectId(
+          getPracticeQuestionsDto,
+          session,
+        );
+      console.log('response:', response);
+
+      await session.commitTransaction();
+      return response;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
   }
 
   async findById(questionId: string) {

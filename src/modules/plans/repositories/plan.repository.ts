@@ -20,7 +20,8 @@ export class PlansRepository implements OnModuleInit {
         label: 'Secondary',
         description: 'For secondary school exams and subject practice.',
         isPremium: true,
-        price: 3000,
+        priceInKobo: 300000,
+        pricePerPracticeQuestionInKobo: 1000,
         isActive: true,
       },
       {
@@ -29,7 +30,8 @@ export class PlansRepository implements OnModuleInit {
         label: 'Tertiary',
         description: 'For university, polytechnic, and college exams.',
         isPremium: true,
-        price: 4000,
+        priceInKobo: 400000,
+        pricePerPracticeQuestionInKobo: 1500,
         isActive: true,
       },
       {
@@ -38,7 +40,8 @@ export class PlansRepository implements OnModuleInit {
         label: 'Other',
         description: 'For IELTS, professional exams, and similar tests.',
         isPremium: true,
-        price: 6000,
+        priceInKobo: 600000,
+        pricePerPracticeQuestionInKobo: 2000,
         isActive: true,
       },
     ];

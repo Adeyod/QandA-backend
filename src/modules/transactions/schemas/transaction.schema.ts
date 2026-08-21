@@ -11,6 +11,7 @@ export enum TransactionType {
 export enum TransactionCategoryEnum {
   GENERAL = 'GENERAL',
   REFERRAL_BONUS = 'REFERRAL_BONUS',
+  PRACTICE_QUESTION = 'PRACTICE_QUESTION',
 }
 
 @Schema({ timestamps: true })
@@ -22,7 +23,7 @@ export class Transaction {
   withdrawalId?: Types.ObjectId;
 
   @Prop({ required: true })
-  amount!: number;
+  amountInKobo!: number;
 
   @Prop({ type: String, enum: TransactionType, required: true })
   type!: TransactionType;

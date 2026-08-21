@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ExamType } from '../../common/enums/exam-type.enum';
+import { EXAM_PLAN_MAP } from '../../common/utils/maps/exam-plan.map';
 import { UpdatePlanDto } from './dtos/update-plan.dto';
 import { PlansRepository } from './repositories/plan.repository';
 import { PlanCode } from './schemas/plan.schema';
@@ -63,6 +65,26 @@ export class PlansService {
         status: 400,
       });
     }
+
+    return response;
+  }
+
+  async getPlanByExamType(examType: ExamType) {
+    const normalizedExamType = examType.trim().toLowerCase();
+
+    const planCode = EXAM_PLAN_MAP[normalizedExamType];
+
+    if (!planCode) {
+      throw new NotFoundException({
+        message: `No plan is configured for exam type: ${examType}.`,
+        success: false,
+        status: 404,
+      });
+    }
+
+    const response = await this.getPlanByCode(planCode);
+
+    console.log('response:', response);
 
     return response;
   }
